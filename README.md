@@ -14,18 +14,16 @@ If you install the Vaadin plugin for IntelliJ, you should instead launch the `Ap
 
 ## Deploying to Production
 
-The project is a standard Maven project. To create a production build, call 
+The project is a standard Gradle project. To create a production build, call 
 
 ```
-./mvnw clean package -Pproduction
+./gradlew productionBuild
 ```
 
-If you have Maven globally installed, you can replace `./mvnw` with `mvn`.
-
-This will build a JAR file with all the dependencies and front-end resources,ready to be run. The file can be found in the `target` folder after the build completes.
+This will build a JAR file with all the dependencies and front-end resources, ready to be run. The file can be found in the `build/libs` folder after the build completes.
 You then launch the application using 
 ```
-java -jar target/pharmalink-client-1.0-SNAPSHOT.jar
+java -jar build/libs/pharmalink-client.jar
 ```
 
 ## Project structure
@@ -56,7 +54,7 @@ java -jar target/pharmalink-client-1.0-SNAPSHOT.jar
 To build the Dockerized version of the project, run
 
 ```
-mvn clean package -Pproduction
+./gradlew productionBuild
 docker build . -t pharmalink-client:latest
 ```
 
