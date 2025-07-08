@@ -1,31 +1,39 @@
 package de.jklein.pharmalinkclient.views;
 
+import com.vaadin.flow.component.UI;
 import com.vaadin.flow.component.applayout.AppLayout;
 import com.vaadin.flow.component.applayout.DrawerToggle;
+import com.vaadin.flow.component.avatar.Avatar;
 import com.vaadin.flow.component.button.Button;
+import com.vaadin.flow.component.html.Footer;
 import com.vaadin.flow.component.html.H1;
 import com.vaadin.flow.component.html.Header;
 import com.vaadin.flow.component.html.Span;
 import com.vaadin.flow.component.icon.VaadinIcon;
+import com.vaadin.flow.component.orderedlayout.FlexComponent;
+import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.Scroller;
 import com.vaadin.flow.component.sidenav.SideNav;
 import com.vaadin.flow.component.sidenav.SideNavItem;
 import com.vaadin.flow.router.PageTitle;
-import com.vaadin.flow.theme.lumo.LumoUtility;
+import de.jklein.pharmalinkclient.security.UserSession;
 import de.jklein.pharmalinkclient.service.AuthService;
 import de.jklein.pharmalinkclient.views.actorexplorer.ActorExplorerView;
 import de.jklein.pharmalinkclient.views.dashboard.DashboardView;
 import de.jklein.pharmalinkclient.views.medikamente.MedikamenteView;
 import de.jklein.pharmalinkclient.views.units.UnitsView;
-import org.springframework.beans.factory.annotation.Autowired;
+import com.vaadin.flow.theme.lumo.LumoUtility;
 
 public class MainLayout extends AppLayout {
 
     private H1 viewTitle;
     private final AuthService authService;
+    private final UserSession userSession;
 
-    public MainLayout(@Autowired AuthService authService) {
+    public MainLayout(AuthService authService, UserSession userSession) {
         this.authService = authService;
+        this.userSession = userSession;
+
         setPrimarySection(Section.DRAWER);
         addDrawerContent();
         addHeaderContent();
@@ -60,12 +68,29 @@ public class MainLayout extends AppLayout {
         return nav;
     }
 
-    private com.vaadin.flow.component.html.Footer createFooter() {
-        com.vaadin.flow.component.html.Footer layout = new com.vaadin.flow.component.html.Footer();
+    private Footer createFooter() {
+        Footer layout = new Footer();
 
-        Button logoutButton = new Button("Logout", VaadinIcon.SIGN_OUT.create());
-        logoutButton.addClickListener(event -> authService.logout());
-        layout.add(logoutButton);
+        // Zeige den Benutzerbereich nur an, wenn der Benutzer eingeloggt ist.
+        if (userSession.isLoggedIn()) {
+            Avatar avatar = new Avatar("User");
+            avatar.setThemeName("xsmall");
+            avatar.addClassNames(LumoUtility.Margin.End.SMALL);
+
+            Button logoutButton = new Button("Logout", VaadinIcon.SIGN_OUT.create());
+            logoutButton.addClickListener(event -> {
+                // Zuerst die serverseitige Session leeren
+                authService.logout();
+                // Dann die Seite neu laden. Spring Security leitet dann zur Login-Seite um.
+                UI.getCurrent().getPage().reload();
+            });
+
+            HorizontalLayout userLayout = new HorizontalLayout(avatar, logoutButton);
+            userLayout.setAlignItems(FlexComponent.Alignment.CENTER);
+            userLayout.setSpacing(true);
+            userLayout.addClassNames(LumoUtility.Padding.Vertical.XSMALL);
+            layout.add(userLayout);
+        }
 
         return layout;
     }

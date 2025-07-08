@@ -1,55 +1,76 @@
 package de.jklein.pharmalinkclient.service;
 
+import com.vaadin.flow.server.VaadinSession;
 import de.jklein.pharmalinkclient.dto.auth.LoginRequest;
 import de.jklein.pharmalinkclient.dto.auth.LoginResponse;
 import de.jklein.pharmalinkclient.security.UserSession;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.http.MediaType;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.web.context.HttpSessionSecurityContextRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.client.WebClient;
 import reactor.core.publisher.Mono;
 
+import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 
 @Service
 public class AuthService {
 
+    private static final Logger log = LoggerFactory.getLogger(AuthService.class);
     private final WebClient webClient;
-    private final UserSession userSession;
-
-    // Die Backend-URL für den Login
+    private final UserSession userSession; // Wieder hinzugefügt für die Logout-Funktion
     private final String loginUrl = "https://d1.navine.tech/api/v1/auth/login";
 
-    @Autowired
-    public AuthService(WebClient.Builder webClientBuilder, de.jklein.pharmalinkclient.security.UserSession userSession) {
+    public AuthService(WebClient.Builder webClientBuilder, UserSession userSession) {
         this.webClient = webClientBuilder.baseUrl(loginUrl).build();
-        this.userSession = userSession;
+        this.userSession = userSession; // Wieder hinzugefügt
     }
 
-    public CompletableFuture<Boolean> login(String username, String password) {
+    /**
+     * Ruft den Backend-Endpunkt auf und gibt bei Erfolg den JWT zurück.
+     * @return Ein CompletableFuture, das bei Erfolg den Token enthält, sonst leer ist.
+     */
+    public CompletableFuture<Optional<String>> fetchToken(String username, String password) {
+        log.info("Frage Token für Benutzer an: {}", username);
         LoginRequest loginRequest = new LoginRequest(username, password);
-
-        CompletableFuture<Boolean> future = new CompletableFuture<>();
+        CompletableFuture<Optional<String>> future = new CompletableFuture<>();
 
         webClient.post()
                 .contentType(MediaType.APPLICATION_JSON)
                 .body(Mono.just(loginRequest), LoginRequest.class)
                 .retrieve()
                 .bodyToMono(LoginResponse.class)
-                .subscribe(response -> {
-                    // Bei Erfolg den JWT in der Session speichern
-                    userSession.setJwt(response.getJwt());
-                    future.complete(true);
-                }, error -> {
-                    // Bei einem Fehler (z.B. 401 Unauthorized)
-                    future.complete(false);
-                });
-
+                .map(response -> Optional.ofNullable(response.getJwt()))
+                .defaultIfEmpty(Optional.empty())
+                .subscribe(
+                        future::complete,
+                        error -> {
+                            log.error("Fehler beim Abrufen des Tokens für Benutzer '{}': {}", username, error.getMessage());
+                            future.complete(Optional.empty());
+                        }
+                );
         return future;
     }
 
+    /**
+     * Führt den Logout-Prozess durch.
+     */
     public void logout() {
-        // Den JWT aus der Session entfernen
-        userSession.setJwt(null);
+        if (VaadinSession.getCurrent() != null) {
+            try {
+                // Leere die benutzerdefinierte Session und den Security Context aus der HttpSession.
+                userSession.setJwt(null);
+                VaadinSession.getCurrent().getSession().removeAttribute(HttpSessionSecurityContextRepository.SPRING_SECURITY_CONTEXT_KEY);
+                log.info("Benutzerdefinierte Session und Security Context aus HttpSession entfernt.");
+            } catch (Exception e) {
+                log.error("Fehler beim Bereinigen der Vaadin-Session.", e);
+            }
+        }
+        // Bereinige den SecurityContext für den aktuellen Thread.
+        SecurityContextHolder.clearContext();
+        log.info("Benutzer ausgeloggt.");
     }
 }

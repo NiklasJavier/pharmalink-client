@@ -9,7 +9,7 @@ import de.jklein.pharmalinkclient.views.MainLayout;
 import jakarta.annotation.security.PermitAll;
 
 @PageTitle("Dashboard")
-@Route(value = "dashboard", layout = MainLayout.class)
+@Route(value = "", layout = MainLayout.class)
 @PermitAll
 public class DashboardView extends Main {
 
