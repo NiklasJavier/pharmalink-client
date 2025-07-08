@@ -1,4 +1,4 @@
-package de.jklein.security;
+package de.jklein.pharmalinkclient.security;
 
 import com.vaadin.controlcenter.starter.idm.IdentityManagementConfiguration;
 import org.springframework.context.annotation.Configuration;

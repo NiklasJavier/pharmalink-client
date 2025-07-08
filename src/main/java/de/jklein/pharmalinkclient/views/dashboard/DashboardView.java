@@ -1,4 +1,4 @@
-package de.jklein.views.dashboard;
+package de.jklein.pharmalinkclient.views.dashboard;
 
 
 import com.vaadin.flow.component.Component;
@@ -27,7 +27,7 @@ import com.vaadin.flow.theme.lumo.LumoUtility.FontWeight;
 import com.vaadin.flow.theme.lumo.LumoUtility.Margin;
 import com.vaadin.flow.theme.lumo.LumoUtility.Padding;
 import com.vaadin.flow.theme.lumo.LumoUtility.TextColor;
-import de.jklein.views.dashboard.ServiceHealth.Status;
+import de.jklein.pharmalinkclient.views.dashboard.ServiceHealth.Status;
 import jakarta.annotation.security.PermitAll;
 import org.vaadin.lineawesome.LineAwesomeIconUrl;
 

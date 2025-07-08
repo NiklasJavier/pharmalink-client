@@ -1,4 +1,4 @@
-package de.jklein.views.medikamente;
+package de.jklein.pharmalinkclient.views.medikamente;
 
 import com.vaadin.flow.component.UI;
 import com.vaadin.flow.component.button.Button;
@@ -26,8 +26,8 @@ import com.vaadin.flow.router.Menu;
 import com.vaadin.flow.router.PageTitle;
 import com.vaadin.flow.router.Route;
 import com.vaadin.flow.spring.data.VaadinSpringDataHelpers;
-import de.jklein.data.SamplePerson;
-import de.jklein.services.SamplePersonService;
+import de.jklein.pharmalinkclient.data.SamplePerson;
+import de.jklein.pharmalinkclient.services.SamplePersonService;
 import jakarta.annotation.security.PermitAll;
 import java.util.Optional;
 import org.springframework.orm.ObjectOptimisticLockingFailureException;

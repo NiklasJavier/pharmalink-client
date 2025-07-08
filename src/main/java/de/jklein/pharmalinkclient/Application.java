@@ -1,9 +1,9 @@
-package de.jklein;
+package de.jklein.pharmalinkclient;
 
 import com.vaadin.flow.component.page.AppShellConfigurator;
 import com.vaadin.flow.router.PageTitle;
 import com.vaadin.flow.theme.Theme;
-import de.jklein.data.SamplePersonRepository;
+import de.jklein.pharmalinkclient.data.SamplePersonRepository;
 import javax.sql.DataSource;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
@@ -19,7 +19,7 @@ import org.springframework.context.annotation.Bean;
  *
  */
 @SpringBootApplication
-@PageTitle("Pharmalink Client")
+@PageTitle("PharmaLink Client")
 @Theme(value = "pharmalink-client")
 public class Application implements AppShellConfigurator {
 

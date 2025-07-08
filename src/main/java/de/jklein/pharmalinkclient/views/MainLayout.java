@@ -1,4 +1,4 @@
-package de.jklein.views;
+package de.jklein.pharmalinkclient.views;
 
 import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.applayout.AppLayout;
@@ -34,11 +34,11 @@ import com.vaadin.flow.theme.lumo.LumoUtility.Padding;
 import com.vaadin.flow.theme.lumo.LumoUtility.TextColor;
 import com.vaadin.flow.theme.lumo.LumoUtility.Whitespace;
 import com.vaadin.flow.theme.lumo.LumoUtility.Width;
-import de.jklein.security.AuthenticatedUser;
-import de.jklein.views.actorexplorer.ActorExplorerView;
-import de.jklein.views.dashboard.DashboardView;
-import de.jklein.views.medikamente.MedikamenteView;
-import de.jklein.views.units.UnitsView;
+import de.jklein.pharmalinkclient.security.AuthenticatedUser;
+import de.jklein.pharmalinkclient.views.actorexplorer.ActorExplorerView;
+import de.jklein.pharmalinkclient.views.dashboard.DashboardView;
+import de.jklein.pharmalinkclient.views.medikamente.MedikamenteView;
+import de.jklein.pharmalinkclient.views.units.UnitsView;
 import java.util.Optional;
 import org.springframework.security.oauth2.core.oidc.user.OidcUser;
 import org.vaadin.lineawesome.LineAwesomeIcon;
@@ -99,7 +99,7 @@ public class MainLayout extends AppLayout {
         Div layout = new Div();
         layout.addClassNames(Display.FLEX, AlignItems.CENTER, Padding.Horizontal.LARGE);
 
-        H1 appName = new H1("Pharmalink Client");
+        H1 appName = new H1("PharmaLink Client");
         appName.addClassNames(Margin.Vertical.MEDIUM, Margin.End.AUTO, FontSize.LARGE);
         layout.add(appName);
 

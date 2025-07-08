@@ -1,4 +1,4 @@
 @NonNullApi
-package de.jklein.services;
+package de.jklein.pharmalinkclient.services;
 
 import org.springframework.lang.NonNullApi;

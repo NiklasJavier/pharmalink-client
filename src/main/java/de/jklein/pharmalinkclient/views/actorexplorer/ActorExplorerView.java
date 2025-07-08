@@ -1,4 +1,4 @@
-package de.jklein.views.actorexplorer;
+package de.jklein.pharmalinkclient.views.actorexplorer;
 
 import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.Text;
@@ -23,8 +23,8 @@ import com.vaadin.flow.router.PageTitle;
 import com.vaadin.flow.router.Route;
 import com.vaadin.flow.spring.data.VaadinSpringDataHelpers;
 import com.vaadin.flow.theme.lumo.LumoUtility;
-import de.jklein.data.SamplePerson;
-import de.jklein.services.SamplePersonService;
+import de.jklein.pharmalinkclient.data.SamplePerson;
+import de.jklein.pharmalinkclient.services.SamplePersonService;
 import jakarta.annotation.security.PermitAll;
 import jakarta.persistence.criteria.CriteriaBuilder;
 import jakarta.persistence.criteria.CriteriaQuery;

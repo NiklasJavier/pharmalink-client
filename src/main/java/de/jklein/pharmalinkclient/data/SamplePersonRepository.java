@@ -1,4 +1,4 @@
-package de.jklein.data;
+package de.jklein.pharmalinkclient.data;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;

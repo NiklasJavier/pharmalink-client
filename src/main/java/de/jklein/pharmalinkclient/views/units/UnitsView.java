@@ -1,4 +1,4 @@
-package de.jklein.views.units;
+package de.jklein.pharmalinkclient.views.units;
 
 import com.vaadin.flow.component.Composite;
 import com.vaadin.flow.component.formlayout.FormLayout;

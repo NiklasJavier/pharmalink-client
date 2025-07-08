@@ -1,7 +1,7 @@
-package de.jklein.services;
+package de.jklein.pharmalinkclient.services;
 
-import de.jklein.data.SamplePerson;
-import de.jklein.data.SamplePersonRepository;
+import de.jklein.pharmalinkclient.data.SamplePerson;
+import de.jklein.pharmalinkclient.data.SamplePersonRepository;
 import java.util.Optional;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;

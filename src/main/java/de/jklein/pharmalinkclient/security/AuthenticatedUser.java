@@ -1,4 +1,4 @@
-package de.jklein.security;
+package de.jklein.pharmalinkclient.security;
 
 import com.vaadin.flow.spring.security.AuthenticationContext;
 import java.util.Optional;

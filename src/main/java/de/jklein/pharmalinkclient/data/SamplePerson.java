@@ -1,4 +1,4 @@
-package de.jklein.data;
+package de.jklein.pharmalinkclient.data;
 
 import jakarta.persistence.Entity;
 import jakarta.validation.constraints.Email;

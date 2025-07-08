@@ -1,4 +1,4 @@
-package de.jklein.data;
+package de.jklein.pharmalinkclient.data;
 
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;

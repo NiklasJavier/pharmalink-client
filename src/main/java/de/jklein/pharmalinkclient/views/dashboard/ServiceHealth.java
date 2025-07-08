@@ -1,4 +1,4 @@
-package de.jklein.views.dashboard;
+package de.jklein.pharmalinkclient.views.dashboard;
 
 /**
  * Simple DTO class for the inbox list to demonstrate complex object data
