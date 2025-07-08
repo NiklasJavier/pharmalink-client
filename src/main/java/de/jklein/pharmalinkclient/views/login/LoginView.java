@@ -32,17 +32,19 @@ public class LoginView extends VerticalLayout implements BeforeEnterObserver {
         add(loginForm);
 
         loginForm.addLoginListener(event -> {
+            final String username = event.getUsername(); // Benutzername hier erfassen
             loginForm.setEnabled(false);
-            authService.fetchToken(event.getUsername(), event.getPassword())
+
+            authService.fetchToken(username, event.getPassword())
                     .whenComplete((tokenOptional, ex) -> {
                         getUI().ifPresent(ui -> ui.access(() -> {
                             if (tokenOptional != null && tokenOptional.isPresent()) {
-                                log.info("Token erhalten. Leite per Client-Redirect zur Session-Erstellung weiter.");
-                                // **DIE ENTSCHEIDENDE ÄNDERUNG HIER**
-                                // setLocation() führt eine echte Browser-Umleitung durch und erzeugt eine neue, saubere Anfrage.
-                                ui.getPage().setLocation("login/token/" + tokenOptional.get());
+                                log.info("Token erhalten. Leite zur Session-Erstellung mit Benutzer '{}' weiter.", username);
+                                // **HIER DIE ANPASSUNG:** Benutzername wird zur URL hinzugefügt.
+                                String url = String.format("login/token/%s/%s", username, tokenOptional.get());
+                                ui.getPage().setLocation(url);
                             } else {
-                                log.warn("Login fehlgeschlagen für Benutzer: {}", event.getUsername());
+                                log.warn("Login fehlgeschlagen für Benutzer: {}", username);
                                 loginForm.setError(true);
                                 loginForm.setEnabled(true);
                             }

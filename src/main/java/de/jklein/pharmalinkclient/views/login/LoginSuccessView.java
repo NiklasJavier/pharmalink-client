@@ -20,7 +20,8 @@ import org.springframework.security.web.context.SecurityContextRepository;
 
 import java.util.Collections;
 
-@Route("login/token/:token")
+// **HIER DIE 1. ANPASSUNG:** Die Route enthält jetzt den :username Parameter
+@Route("login/token/:username/:token")
 @PageTitle("Login Process")
 @AnonymousAllowed
 public class LoginSuccessView extends VerticalLayout implements BeforeEnterObserver {
@@ -36,23 +37,23 @@ public class LoginSuccessView extends VerticalLayout implements BeforeEnterObser
 
     @Override
     public void beforeEnter(BeforeEnterEvent event) {
+        // **HIER DIE 2. ANPASSUNG:** Benutzername und Token aus der URL auslesen
+        final String username = event.getRouteParameters().get("username").orElse("");
         final String token = event.getRouteParameters().get("token").orElse("");
-        if (token.isEmpty()) {
-            log.warn("LoginSuccessView ohne Token aufgerufen. Leite zum Login weiter.");
+
+        if (token.isEmpty() || username.isEmpty()) {
+            log.warn("LoginSuccessView ohne Token oder Benutzername aufgerufen. Leite zum Login weiter.");
             event.forwardTo(LoginView.class);
             return;
         }
 
         try {
-            // **HIER IST DER SYNCHRONE KONTEXT, DEN WIR BRAUCHEN**
             HttpServletRequest request = ((VaadinServletRequest) VaadinService.getCurrentRequest()).getHttpServletRequest();
             HttpServletResponse response = ((VaadinServletResponse) VaadinService.getCurrentResponse()).getHttpServletResponse();
 
-            // In einer echten App würde der Benutzername aus dem JWT extrahiert werden.
-            String username = "user_from_jwt"; // Platzhalter
-
             userSession.setJwt(token);
 
+            // **HIER DIE 3. ANPASSUNG:** Den ausgelesenen Benutzernamen verwenden
             UsernamePasswordAuthenticationToken auth = new UsernamePasswordAuthenticationToken(
                     username, null, Collections.singletonList(new SimpleGrantedAuthority("ROLE_USER")));
 
@@ -62,11 +63,10 @@ public class LoginSuccessView extends VerticalLayout implements BeforeEnterObser
             securityContextRepository.saveContext(context, request, response);
 
             log.info("Sitzung für Benutzer '{}' erfolgreich erstellt. Leite zum Dashboard weiter.", username);
-            // Wir verwenden event.forwardTo(), da wir uns bereits in einem sicheren, synchronen Kontext befinden.
             event.forwardTo("");
 
         } catch (Exception e) {
-            log.error("Fehler bei der Erstellung der Benutzersitzung.", e);
+            log.error("Fehler bei der Erstellung der Benutzersitzung für '{}'.", username, e);
             event.rerouteTo(LoginView.class);
         }
     }
