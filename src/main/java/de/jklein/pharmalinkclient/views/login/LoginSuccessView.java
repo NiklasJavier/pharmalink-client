@@ -1,6 +1,5 @@
 package de.jklein.pharmalinkclient.views.login;
 
-import com.vaadin.flow.component.UI;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.router.*;
 import com.vaadin.flow.server.VaadinService;
@@ -20,7 +19,6 @@ import org.springframework.security.web.context.SecurityContextRepository;
 
 import java.util.Collections;
 
-// **HIER DIE 1. ANPASSUNG:** Die Route enthält jetzt den :username Parameter
 @Route("login/token/:username/:token")
 @PageTitle("Login Process")
 @AnonymousAllowed
@@ -37,7 +35,6 @@ public class LoginSuccessView extends VerticalLayout implements BeforeEnterObser
 
     @Override
     public void beforeEnter(BeforeEnterEvent event) {
-        // **HIER DIE 2. ANPASSUNG:** Benutzername und Token aus der URL auslesen
         final String username = event.getRouteParameters().get("username").orElse("");
         final String token = event.getRouteParameters().get("token").orElse("");
 
@@ -48,21 +45,26 @@ public class LoginSuccessView extends VerticalLayout implements BeforeEnterObser
         }
 
         try {
+            // Da dies eine neue, saubere Anfrage vom Browser ist, sind diese Objekte jetzt gültig.
             HttpServletRequest request = ((VaadinServletRequest) VaadinService.getCurrentRequest()).getHttpServletRequest();
             HttpServletResponse response = ((VaadinServletResponse) VaadinService.getCurrentResponse()).getHttpServletResponse();
 
+            // Speichere die Benutzerdaten in der Vaadin-Session-Bean
+            userSession.setUsername(username);
             userSession.setJwt(token);
 
-            // **HIER DIE 3. ANPASSUNG:** Den ausgelesenen Benutzernamen verwenden
+            // Erstelle ein Authentication-Objekt für Spring Security
             UsernamePasswordAuthenticationToken auth = new UsernamePasswordAuthenticationToken(
                     username, null, Collections.singletonList(new SimpleGrantedAuthority("ROLE_USER")));
 
             SecurityContext context = SecurityContextHolder.createEmptyContext();
             context.setAuthentication(auth);
 
+            // Speichere den Kontext explizit in der HttpSession, um den Login persistent zu machen
             securityContextRepository.saveContext(context, request, response);
 
             log.info("Sitzung für Benutzer '{}' erfolgreich erstellt. Leite zum Dashboard weiter.", username);
+            // Leite zur Hauptansicht weiter.
             event.forwardTo("");
 
         } catch (Exception e) {

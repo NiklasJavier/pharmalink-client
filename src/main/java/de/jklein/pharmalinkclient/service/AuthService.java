@@ -21,12 +21,12 @@ public class AuthService {
 
     private static final Logger log = LoggerFactory.getLogger(AuthService.class);
     private final WebClient webClient;
-    private final UserSession userSession; // Wieder hinzugefügt für die Logout-Funktion
+    private final UserSession userSession;
     private final String loginUrl = "https://d1.navine.tech/api/v1/auth/login";
 
     public AuthService(WebClient.Builder webClientBuilder, UserSession userSession) {
         this.webClient = webClientBuilder.baseUrl(loginUrl).build();
-        this.userSession = userSession; // Wieder hinzugefügt
+        this.userSession = userSession;
     }
 
     /**
@@ -56,13 +56,15 @@ public class AuthService {
     }
 
     /**
-     * Führt den Logout-Prozess durch.
+     * Führt den Logout-Prozess durch, indem alle Sitzungsdaten bereinigt werden.
      */
     public void logout() {
         if (VaadinSession.getCurrent() != null) {
             try {
-                // Leere die benutzerdefinierte Session und den Security Context aus der HttpSession.
+                // Bereinige die benutzerdefinierte Session
                 userSession.setJwt(null);
+                userSession.setUsername(null);
+                // Entferne den Security Context aus der zugrundeliegenden HttpSession
                 VaadinSession.getCurrent().getSession().removeAttribute(HttpSessionSecurityContextRepository.SPRING_SECURITY_CONTEXT_KEY);
                 log.info("Benutzerdefinierte Session und Security Context aus HttpSession entfernt.");
             } catch (Exception e) {

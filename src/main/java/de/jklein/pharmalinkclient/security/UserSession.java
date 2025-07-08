@@ -1,16 +1,18 @@
-package de.jklein.pharmalinkclient.security; // Notice the change here
+package de.jklein.pharmalinkclient.security;
 
-import com.vaadin.flow.spring.annotation.VaadinSessionScope;
-import org.springframework.context.annotation.Scope;
-import org.springframework.context.annotation.ScopedProxyMode;
 import org.springframework.stereotype.Component;
+import org.springframework.web.context.annotation.SessionScope;
 import java.io.Serializable;
 
 @Component
-@Scope(value = "vaadin-session", proxyMode = ScopedProxyMode.TARGET_CLASS)
+@SessionScope
 public class UserSession implements Serializable {
-    // ... rest of the class is the same
+
+    private static final long serialVersionUID = 2L; // Version erhöht
+
     private String jwt;
+    private String username;
+    private String theme; // Hinzugefügtes Feld für das Theme
 
     public String getJwt() {
         return jwt;
@@ -18,6 +20,22 @@ public class UserSession implements Serializable {
 
     public void setJwt(String jwt) {
         this.jwt = jwt;
+    }
+
+    public String getUsername() {
+        return username;
+    }
+
+    public void setUsername(String username) {
+        this.username = username;
+    }
+
+    public String getTheme() {
+        return theme;
+    }
+
+    public void setTheme(String theme) {
+        this.theme = theme;
     }
 
     public boolean isLoggedIn() {
