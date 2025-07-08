@@ -10,7 +10,6 @@ import jakarta.annotation.security.PermitAll;
 
 @PageTitle("UnitsView")
 @Route(value = "unitsView", layout = MainLayout.class)
-@RouteAlias(value = "", layout = MainLayout.class)
 @PermitAll
 public class UnitsView extends Main {
 

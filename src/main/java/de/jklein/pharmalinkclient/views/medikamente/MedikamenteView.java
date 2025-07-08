@@ -10,7 +10,6 @@ import jakarta.annotation.security.PermitAll;
 
 @PageTitle("MedikamenteView")
 @Route(value = "medikamenteView", layout = MainLayout.class)
-@RouteAlias(value = "", layout = MainLayout.class)
 @PermitAll
 public class MedikamenteView extends Main {
 

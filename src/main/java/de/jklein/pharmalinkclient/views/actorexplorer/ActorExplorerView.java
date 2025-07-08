@@ -10,7 +10,6 @@ import jakarta.annotation.security.PermitAll;
 
 @PageTitle("ActorExplorer")
 @Route(value = "actorExplorer", layout = MainLayout.class)
-@RouteAlias(value = "", layout = MainLayout.class)
 @PermitAll
 public class ActorExplorerView extends Main {
 

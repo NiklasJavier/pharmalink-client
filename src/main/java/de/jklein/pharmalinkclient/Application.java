@@ -14,7 +14,7 @@ import org.springframework.boot.autoconfigure.sql.init.SqlDataSourceScriptDataba
  * and some desktop browsers.
  *
  */
-@SpringBootApplication(exclude = SqlDataSourceScriptDatabaseInitializer.class)
+@SpringBootApplication
 @Theme(value = "pharmalink-client")
 public class Application implements AppShellConfigurator {
 
