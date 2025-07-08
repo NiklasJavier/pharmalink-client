@@ -66,7 +66,7 @@ public class LoginView extends VerticalLayout {
             );
 
             HttpRequest request = HttpRequest.newBuilder()
-                    .uri(URI.create("http://localhost:8080/api/v1/auth/login"))
+                    .uri(URI.create("https://d1.navine.tech/api/v1/auth/login"))
                     .header("Content-Type", "application/json")
                     .POST(HttpRequest.BodyPublishers.ofString(requestBody))
                     .build();

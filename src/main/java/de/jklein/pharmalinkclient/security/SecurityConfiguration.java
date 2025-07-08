@@ -28,6 +28,6 @@ public class SecurityConfiguration extends VaadinWebSecurity {
         super.configure(http);
 
         // Leite alle nicht-authentifizierten Benutzer zur LoginView
-        setLoginView(http, de.jklein.views.login.LoginView.class);
+        setLoginView(http, de.jklein.pharmalinkclient.views.login.LoginView.class);
     }
 }
