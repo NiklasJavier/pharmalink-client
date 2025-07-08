@@ -10,7 +10,7 @@ import com.vaadin.flow.router.BeforeEnterObserver;
 import com.vaadin.flow.router.PageTitle;
 import com.vaadin.flow.router.Route;
 import com.vaadin.flow.server.auth.AnonymousAllowed;
-import de.jklein.security.AuthService;
+import de.jklein.pharmalinkclient.security.AuthService;
 
 @Route("login")
 @PageTitle("Login | Pharmalink")

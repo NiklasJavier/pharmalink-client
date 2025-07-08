@@ -1,4 +1,4 @@
-package de.jklein.security;
+package de.jklein.pharmalinkclient.security;
 
 import com.vaadin.flow.spring.security.VaadinWebSecurity;
 import org.springframework.context.annotation.Configuration;
@@ -28,6 +28,6 @@ public class SecurityConfiguration extends VaadinWebSecurity {
         super.configure(http);
 
         // Leite alle nicht-authentifizierten Benutzer zur LoginView
-        setLoginView(http, LoginView.class);
+        setLoginView(http, de.jklein.views.login.LoginView.class);
     }
 }

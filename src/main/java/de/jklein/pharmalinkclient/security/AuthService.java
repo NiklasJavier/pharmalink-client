@@ -6,6 +6,7 @@ import de.jklein.pharmalinkclient.dto.auth.JwtResponse;
 import de.jklein.pharmalinkclient.dto.auth.LoginRequest;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
+import org.springframework.web.reactive.function.client.WebClient;
 import reactor.core.publisher.Mono;
 
 @Service
