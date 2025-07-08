@@ -1,24 +1,33 @@
-package de.jklein.pharmalinkclient.security;
+package de.jklein.security;
 
-import com.vaadin.controlcenter.starter.idm.IdentityManagementConfiguration;
+import com.vaadin.flow.spring.security.VaadinWebSecurity;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
-import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
+import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
+import org.springframework.security.config.http.SessionCreationPolicy;
 
+@EnableWebSecurity
 @Configuration
-public class SecurityConfiguration extends IdentityManagementConfiguration {
+public class SecurityConfiguration extends VaadinWebSecurity {
 
     @Override
     protected void configure(HttpSecurity http) throws Exception {
+        // Erlaube öffentliche Ressourcen
+        http.authorizeHttpRequests(auth ->
+                auth.requestMatchers(
+                        "/images/**",
+                        "/line-awesome/**",
+                        "/icons/**"
+                ).permitAll()
+        );
 
-        http.authorizeHttpRequests(
-                authorize -> authorize.requestMatchers(new AntPathRequestMatcher("/images/*.png")).permitAll());
-
-        // Icons from the line-awesome addon
-        http.authorizeHttpRequests(authorize -> authorize
-                .requestMatchers(new AntPathRequestMatcher("/line-awesome/**/*.svg")).permitAll());
+        // JWT ist stateless, daher keine CSRF-Protection für API-Routen (die hier nicht definiert sind)
+        // Aber für Vaadin-Kommunikation wird es gebraucht.
+        // Vaadin kümmert sich um den Rest.
 
         super.configure(http);
-    }
 
+        // Leite alle nicht-authentifizierten Benutzer zur LoginView
+        setLoginView(http, LoginView.class);
+    }
 }
