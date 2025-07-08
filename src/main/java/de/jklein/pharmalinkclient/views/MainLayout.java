@@ -12,11 +12,11 @@ import com.vaadin.flow.component.sidenav.SideNav;
 import com.vaadin.flow.component.sidenav.SideNavItem;
 import com.vaadin.flow.router.PageTitle;
 import com.vaadin.flow.theme.lumo.LumoUtility;
+import de.jklein.pharmalinkclient.service.AuthService;
 import de.jklein.pharmalinkclient.views.actorexplorer.ActorExplorerView;
 import de.jklein.pharmalinkclient.views.dashboard.DashboardView;
 import de.jklein.pharmalinkclient.views.medikamente.MedikamenteView;
 import de.jklein.pharmalinkclient.views.units.UnitsView;
-import de.jklein.pharmalinkclient.security.AuthService;
 import org.springframework.beans.factory.annotation.Autowired;
 
 public class MainLayout extends AppLayout {
