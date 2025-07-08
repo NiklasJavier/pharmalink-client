@@ -149,7 +149,7 @@ public class MedikamenteView extends Div implements BeforeEnterObserver {
             } else {
                 Notification.show(
                         String.format("The requested samplePerson was not found, ID = %s", samplePersonId.get()), 3000,
-                        Notification.Position.BOTTOM_START);
+                        Position.BOTTOM_START);
                 // when a row is selected but the data is no longer available,
                 // refresh grid
                 refreshGrid();

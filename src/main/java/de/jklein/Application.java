@@ -19,7 +19,7 @@ import org.springframework.context.annotation.Bean;
  *
  */
 @SpringBootApplication
-@PageTitle("My App")
+@PageTitle("Pharmalink Client")
 @Theme(value = "pharmalink-client")
 public class Application implements AppShellConfigurator {
 

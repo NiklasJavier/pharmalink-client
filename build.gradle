@@ -37,22 +37,6 @@ dependencies {
     testImplementation 'com.vaadin:vaadin-testbench-junit5'
 }
 
-spotless {
-    java {
-        eclipse().configFile(file('eclipse-formatter.xml'))
-    }
-    // Uncomment to format TypeScript files
-    /*
-    format 'typescript', {
-        target 'src/main/frontend/**/*.{ts,tsx}'
-        targetExclude 'src/main/frontend/generated/**'
-        prettier()
-            .version('3.3.3')
-            .config(['configFile': file('.prettierrc.json')])
-    }
-    */
-}
-
 tasks.named('test') {
     useJUnitPlatform()
 }

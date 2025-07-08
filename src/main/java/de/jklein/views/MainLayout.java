@@ -1,31 +1,47 @@
 package de.jklein.views;
 
+import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.applayout.AppLayout;
-import com.vaadin.flow.component.applayout.DrawerToggle;
 import com.vaadin.flow.component.avatar.Avatar;
 import com.vaadin.flow.component.contextmenu.MenuItem;
 import com.vaadin.flow.component.html.Anchor;
 import com.vaadin.flow.component.html.Div;
-import com.vaadin.flow.component.html.Footer;
 import com.vaadin.flow.component.html.H1;
 import com.vaadin.flow.component.html.Header;
+import com.vaadin.flow.component.html.ListItem;
+import com.vaadin.flow.component.html.Nav;
 import com.vaadin.flow.component.html.Span;
+import com.vaadin.flow.component.html.UnorderedList;
 import com.vaadin.flow.component.icon.Icon;
-import com.vaadin.flow.component.icon.SvgIcon;
 import com.vaadin.flow.component.menubar.MenuBar;
-import com.vaadin.flow.component.orderedlayout.Scroller;
-import com.vaadin.flow.component.sidenav.SideNav;
-import com.vaadin.flow.component.sidenav.SideNavItem;
 import com.vaadin.flow.router.Layout;
+import com.vaadin.flow.router.RouterLink;
 import com.vaadin.flow.server.auth.AccessAnnotationChecker;
 import com.vaadin.flow.server.auth.AnonymousAllowed;
-import com.vaadin.flow.server.menu.MenuConfiguration;
-import com.vaadin.flow.server.menu.MenuEntry;
 import com.vaadin.flow.theme.lumo.LumoUtility;
+import com.vaadin.flow.theme.lumo.LumoUtility.AlignItems;
+import com.vaadin.flow.theme.lumo.LumoUtility.BoxSizing;
+import com.vaadin.flow.theme.lumo.LumoUtility.Display;
+import com.vaadin.flow.theme.lumo.LumoUtility.FlexDirection;
+import com.vaadin.flow.theme.lumo.LumoUtility.FontSize;
+import com.vaadin.flow.theme.lumo.LumoUtility.FontWeight;
+import com.vaadin.flow.theme.lumo.LumoUtility.Gap;
+import com.vaadin.flow.theme.lumo.LumoUtility.Height;
+import com.vaadin.flow.theme.lumo.LumoUtility.ListStyleType;
+import com.vaadin.flow.theme.lumo.LumoUtility.Margin;
+import com.vaadin.flow.theme.lumo.LumoUtility.Overflow;
+import com.vaadin.flow.theme.lumo.LumoUtility.Padding;
+import com.vaadin.flow.theme.lumo.LumoUtility.TextColor;
+import com.vaadin.flow.theme.lumo.LumoUtility.Whitespace;
+import com.vaadin.flow.theme.lumo.LumoUtility.Width;
 import de.jklein.security.AuthenticatedUser;
-import java.util.List;
+import de.jklein.views.actorexplorer.ActorExplorerView;
+import de.jklein.views.dashboard.DashboardView;
+import de.jklein.views.medikamente.MedikamenteView;
+import de.jklein.views.units.UnitsView;
 import java.util.Optional;
 import org.springframework.security.oauth2.core.oidc.user.OidcUser;
+import org.vaadin.lineawesome.LineAwesomeIcon;
 
 /**
  * The main view is a top-level placeholder for other views.
@@ -34,7 +50,37 @@ import org.springframework.security.oauth2.core.oidc.user.OidcUser;
 @AnonymousAllowed
 public class MainLayout extends AppLayout {
 
-    private H1 viewTitle;
+    /**
+     * A simple navigation item component, based on ListItem element.
+     */
+    public static class MenuItemInfo extends ListItem {
+
+        private final Class<? extends Component> view;
+
+        public MenuItemInfo(String menuTitle, Component icon, Class<? extends Component> view) {
+            this.view = view;
+            RouterLink link = new RouterLink();
+            // Use Lumo classnames for various styling
+            link.addClassNames(Display.FLEX, Gap.XSMALL, Height.MEDIUM, AlignItems.CENTER, Padding.Horizontal.SMALL,
+                    TextColor.BODY);
+            link.setRoute(view);
+
+            Span text = new Span(menuTitle);
+            // Use Lumo classnames for various styling
+            text.addClassNames(FontWeight.MEDIUM, FontSize.MEDIUM, Whitespace.NOWRAP);
+
+            if (icon != null) {
+                link.add(icon);
+            }
+            link.add(text);
+            add(link);
+        }
+
+        public Class<?> getView() {
+            return view;
+        }
+
+    }
 
     private AuthenticatedUser authenticatedUser;
     private AccessAnnotationChecker accessChecker;
@@ -43,48 +89,19 @@ public class MainLayout extends AppLayout {
         this.authenticatedUser = authenticatedUser;
         this.accessChecker = accessChecker;
 
-        setPrimarySection(Section.DRAWER);
-        addDrawerContent();
-        addHeaderContent();
+        addToNavbar(createHeaderContent());
     }
 
-    private void addHeaderContent() {
-        DrawerToggle toggle = new DrawerToggle();
-        toggle.setAriaLabel("Menu toggle");
+    private Component createHeaderContent() {
+        Header header = new Header();
+        header.addClassNames(BoxSizing.BORDER, Display.FLEX, FlexDirection.COLUMN, Width.FULL);
 
-        viewTitle = new H1();
-        viewTitle.addClassNames(LumoUtility.FontSize.LARGE, LumoUtility.Margin.NONE);
+        Div layout = new Div();
+        layout.addClassNames(Display.FLEX, AlignItems.CENTER, Padding.Horizontal.LARGE);
 
-        addToNavbar(true, toggle, viewTitle);
-    }
-
-    private void addDrawerContent() {
-        Span appName = new Span("My App");
-        appName.addClassNames(LumoUtility.FontWeight.SEMIBOLD, LumoUtility.FontSize.LARGE);
-        Header header = new Header(appName);
-
-        Scroller scroller = new Scroller(createNavigation());
-
-        addToDrawer(header, scroller, createFooter());
-    }
-
-    private SideNav createNavigation() {
-        SideNav nav = new SideNav();
-
-        List<MenuEntry> menuEntries = MenuConfiguration.getMenuEntries();
-        menuEntries.forEach(entry -> {
-            if (entry.icon() != null) {
-                nav.addItem(new SideNavItem(entry.title(), entry.path(), new SvgIcon(entry.icon())));
-            } else {
-                nav.addItem(new SideNavItem(entry.title(), entry.path()));
-            }
-        });
-
-        return nav;
-    }
-
-    private Footer createFooter() {
-        Footer layout = new Footer();
+        H1 appName = new H1("Pharmalink Client");
+        appName.addClassNames(Margin.Vertical.MEDIUM, Margin.End.AUTO, FontSize.LARGE);
+        layout.add(appName);
 
         Optional<OidcUser> maybeUser = authenticatedUser.get();
         if (maybeUser.isPresent()) {
@@ -103,7 +120,7 @@ public class MainLayout extends AppLayout {
             div.add(avatar);
             div.add(user.getUserInfo().getFullName());
             div.add(new Icon("lumo", "dropdown"));
-            div.addClassNames(LumoUtility.Display.FLEX, LumoUtility.AlignItems.CENTER, LumoUtility.Gap.SMALL);
+            div.addClassNames(Display.FLEX, AlignItems.CENTER, Gap.SMALL);
             userName.add(div);
             userName.getSubMenu().addItem("Sign out", e -> {
                 authenticatedUser.logout();
@@ -116,16 +133,36 @@ public class MainLayout extends AppLayout {
             layout.add(loginLink);
         }
 
-        return layout;
+        Nav nav = new Nav();
+        nav.addClassNames(Display.FLEX, Overflow.AUTO, Padding.Horizontal.MEDIUM, Padding.Vertical.XSMALL);
+
+        // Wrap the links in a list; improves accessibility
+        UnorderedList list = new UnorderedList();
+        list.addClassNames(Display.FLEX, Gap.SMALL, ListStyleType.NONE, Margin.NONE, Padding.NONE);
+        nav.add(list);
+
+        for (MenuItemInfo menuItem : createMenuItems()) {
+            if (accessChecker.hasAccess(menuItem.getView())) {
+                list.add(menuItem);
+            }
+
+        }
+
+        header.add(layout, nav);
+        return header;
     }
 
-    @Override
-    protected void afterNavigation() {
-        super.afterNavigation();
-        viewTitle.setText(getCurrentPageTitle());
+    private MenuItemInfo[] createMenuItems() {
+        return new MenuItemInfo[]{ //
+                new MenuItemInfo("Dashboard", LineAwesomeIcon.CHART_AREA_SOLID.create(), DashboardView.class), //
+
+                new MenuItemInfo("Actor Explorer", LineAwesomeIcon.FILTER_SOLID.create(), ActorExplorerView.class), //
+
+                new MenuItemInfo("Medikamente", LineAwesomeIcon.COLUMNS_SOLID.create(), MedikamenteView.class), //
+
+                new MenuItemInfo("Units", LineAwesomeIcon.PENCIL_RULER_SOLID.create(), UnitsView.class), //
+
+        };
     }
 
-    private String getCurrentPageTitle() {
-        return MenuConfiguration.getPageHeader(getContent()).orElse("");
-    }
 }
