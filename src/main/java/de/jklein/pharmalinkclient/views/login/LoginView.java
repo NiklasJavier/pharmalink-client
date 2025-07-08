@@ -47,7 +47,10 @@ public class LoginView extends VerticalLayout {
         setJustifyContentMode(JustifyContentMode.CENTER);
         setSizeFull();
 
+        // Debug-Ausgabe: Button-Listener wird angehängt
+        System.out.println("LoginView: Adding click listener to loginButton.");
         loginButton.addClickListener(event -> {
+            System.out.println("LoginView: Login button clicked event received!"); // Debug
             performLogin();
         });
     }
@@ -55,64 +58,11 @@ public class LoginView extends VerticalLayout {
     private void performLogin() {
         String username = usernameField.getValue();
         String password = passwordField.getValue();
+        System.out.println("LoginView: performLogin called. Username: " + username); // Debug
 
         sendLoginRequest(username, password);
     }
 
     private void sendLoginRequest(String username, String password) {
-        try {
-            String requestBody = objectMapper.writeValueAsString(
-                    Map.of("username", username, "password", password)
-            );
-
-            HttpRequest request = HttpRequest.newBuilder()
-                    .uri(URI.create("https://d1.navine.tech/api/v1/auth/login"))
-                    .header("Content-Type", "application/json")
-                    .POST(HttpRequest.BodyPublishers.ofString(requestBody))
-                    .build();
-
-            httpClient.sendAsync(request, HttpResponse.BodyHandlers.ofString())
-                    .thenAccept(response -> {
-                        UI.getCurrent().access(() -> {
-                            if (response.statusCode() == 200) {
-                                try {
-                                    String responseBody = response.body();
-                                    Map<String, String> jsonResponse = objectMapper.readValue(responseBody, Map.class);
-                                    String jwt = jsonResponse.get("jwt");
-
-                                    storeJwt(jwt);
-                                    notification.setText("Erfolgreich angemeldet!");
-                                    notification.open();
-                                    UI.getCurrent().navigate(DashboardView.class);
-                                } catch (Exception e) {
-                                    notification.setText("Fehler beim Parsen der Antwort: " + e.getMessage());
-                                    notification.open();
-                                    e.printStackTrace();
-                                }
-                            } else {
-                                notification.setText("Login fehlgeschlagen: " + response.body());
-                                notification.open();
-                            }
-                        });
-                    })
-                    .exceptionally(e -> {
-                        UI.getCurrent().access(() -> {
-                            notification.setText("Fehler bei der Kommunikation mit dem Server: " + e.getMessage());
-                            notification.open();
-                        });
-                        e.printStackTrace();
-                        return null;
-                    });
-
-        } catch (Exception e) {
-            notification.setText("Interner Frontend-Fehler: " + e.getMessage());
-            notification.open();
-            e.printStackTrace();
-        }
-    }
-
-    private void storeJwt(String jwt) {
-        WebStorage.setItem("jwt_token", jwt);
-        System.out.println("JWT erfolgreich im Local Storage gespeichert.");
     }
 }
