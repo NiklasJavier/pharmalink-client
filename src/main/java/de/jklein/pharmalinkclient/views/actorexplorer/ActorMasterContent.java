@@ -6,14 +6,14 @@ import com.vaadin.flow.component.grid.Grid;
 import com.vaadin.flow.component.grid.GridVariant;
 import com.vaadin.flow.spring.annotation.SpringComponent;
 import com.vaadin.flow.spring.annotation.UIScope;
-import com.vaadin.flow.component.button.Button; // Dieser Import wird nicht mehr benötigt, aber schadet nicht, wenn nicht gelöscht
+import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.FlexComponent;
 
 import de.jklein.pharmalinkclient.dto.ActorResponseDto;
 import de.jklein.pharmalinkclient.dto.ActorFilterCriteriaDto;
 import de.jklein.pharmalinkclient.service.ActorService;
-import de.jklein.pharmalinkclient.service.StateService;
+import de.jklein.pharmalinkclient.service.StateService; // StateService ist bereits injiziert und wird hier genutzt
 
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -50,9 +50,6 @@ public class ActorMasterContent extends Div {
         H3 title = new H3("Akteur-Liste (Master)");
         headerLayout.add(title);
 
-        // **ENTFERNT:** Button clearSelectionButton = new Button("Auswahl aufheben");
-        // **ENTFERNT:** clearSelectionButton.addClickListener(event -> { grid.asSingleSelect().clear(); });
-        // **ENTFERNT:** headerLayout.add(clearSelectionButton);
         add(headerLayout);
 
         grid = new Grid<>(ActorResponseDto.class, false);
@@ -68,6 +65,7 @@ public class ActorMasterContent extends Div {
 
         stateService.addActorFilterCriteriaListener(this::updateGridWithFilters);
 
+        // Initialer Aufruf zum Laden und Filtern der Akteure beim Start der Komponente
         updateGridWithFilters(stateService.getCurrentActorFilterCriteria());
 
         grid.asSingleSelect().addValueChangeListener(event -> {
@@ -76,7 +74,13 @@ public class ActorMasterContent extends Div {
     }
 
     public void updateGridWithFilters(Optional<ActorFilterCriteriaDto> criteriaOptional) {
+        // ALLE Akteure vom Dienst laden (dies ist die REST-Abfrage)
         List<ActorResponseDto> allActors = actorService.getAllActors();
+
+        // WICHTIG: Speichern Sie die geladenen Akteure im StateService,
+        // damit andere Teile der Anwendung (wie "Meine Stammdaten anzeigen") sie nutzen können.
+        stateService.setAllLoadedActors(allActors); // <-- DIES IST DIE NEUE ZEILE
+
         List<ActorResponseDto> filteredActors = allActors;
 
         if (criteriaOptional.isPresent()) {

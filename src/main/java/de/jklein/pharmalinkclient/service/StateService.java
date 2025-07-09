@@ -1,7 +1,7 @@
 package de.jklein.pharmalinkclient.service;
 
 import de.jklein.pharmalinkclient.dto.ActorFilterCriteriaDto;
-import de.jklein.pharmalinkclient.dto.ActorResponseDto;
+import de.jklein.pharmalinkclient.dto.ActorResponseDto; // Import für ActorResponseDto
 import de.jklein.pharmalinkclient.dto.MedikamentFilterCriteriaDto;
 import de.jklein.pharmalinkclient.dto.MedikamentResponseDto;
 import org.springframework.stereotype.Service;
@@ -11,6 +11,8 @@ import com.vaadin.flow.spring.annotation.VaadinSessionScope;
 import java.io.Serializable;
 import java.beans.PropertyChangeListener;
 import java.beans.PropertyChangeSupport;
+import java.util.Collections; // Import für Collections.emptyList()
+import java.util.List; // Import für List
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
@@ -43,16 +45,20 @@ public class StateService implements Serializable {
     private String navigateToMedikamentId;
     private final PropertyChangeSupport navigateToMedikamentSupport = new PropertyChangeSupport(this);
 
-    // NEUE ZUSTANDSVARIABLEN
+    // NEUE ZUSTANDSVARIABLEN (bereits vorhanden)
     private String currentActorId;
     private Map<String, Object> cacheStats;
 
-    // Listener für neue Zustandsvariablen
+    // Listener für neue Zustandsvariablen (bereits vorhanden)
     private final transient CopyOnWriteArrayList<Consumer<String>> currentActorIdListeners = new CopyOnWriteArrayList<>();
     private final transient CopyOnWriteArrayList<Consumer<Map<String, Object>>> cacheStatsListeners = new CopyOnWriteArrayList<>();
 
-    // NEU: Flag für den Ladezustand der Systemdaten pro Sitzung
+    // NEU: Flag für den Ladezustand der Systemdaten pro Sitzung (bereits vorhanden)
     private boolean systemDataLoadedForSession = false;
+
+    // NEU HINZUGEFÜGT: Liste für alle geladenen Akteure im StateService
+    private List<ActorResponseDto> allLoadedActors = Collections.emptyList();
+    private final transient CopyOnWriteArrayList<Consumer<List<ActorResponseDto>>> allLoadedActorsListeners = new CopyOnWriteArrayList<>();
 
 
     public StateService() {
@@ -185,7 +191,7 @@ public class StateService implements Serializable {
         actorFilterCriteriaListeners.remove(listener);
     }
 
-    // --- Methoden für NEUE Felder mit Listener-Benachrichtigung ---
+    // --- Methoden für currentActorId und cacheStats (unverändert) ---
     public String getCurrentActorId() {
         return currentActorId;
     }
@@ -223,12 +229,30 @@ public class StateService implements Serializable {
         cacheStatsListeners.remove(listener);
     }
 
-    // NEUE GETTER und SETTER für die systemDataLoadedForSession Flag
+    // NEU: GETTER und SETTER für die systemDataLoadedForSession Flag (unverändert)
     public boolean isSystemDataLoadedForSession() {
         return systemDataLoadedForSession;
     }
 
     public void setSystemDataLoadedForSession(boolean systemDataLoadedForSession) {
         this.systemDataLoadedForSession = systemDataLoadedForSession;
+    }
+
+    // NEU: Getter und Setter für alle geladenen Akteure
+    public List<ActorResponseDto> getAllLoadedActors() {
+        return allLoadedActors;
+    }
+
+    public void setAllLoadedActors(List<ActorResponseDto> allLoadedActors) {
+        this.allLoadedActors = allLoadedActors != null ? allLoadedActors : Collections.emptyList();
+        allLoadedActorsListeners.forEach(listener -> listener.accept(this.allLoadedActors));
+    }
+
+    public void addAllLoadedActorsListener(Consumer<List<ActorResponseDto>> listener) {
+        allLoadedActorsListeners.add(listener);
+    }
+
+    public void removeAllLoadedActorsListener(Consumer<List<ActorResponseDto>> listener) {
+        allLoadedActorsListeners.remove(listener);
     }
 }

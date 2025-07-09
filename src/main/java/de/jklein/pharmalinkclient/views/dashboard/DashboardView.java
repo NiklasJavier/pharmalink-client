@@ -1,43 +1,42 @@
 package de.jklein.pharmalinkclient.views.dashboard;
 
-
+import com.google.zxing.BarcodeFormat;
+import com.google.zxing.EncodeHintType;
+import com.google.zxing.WriterException;
+import com.google.zxing.client.j2se.MatrixToImageWriter;
+import com.google.zxing.common.BitMatrix;
+import com.google.zxing.qrcode.QRCodeWriter;
+import com.google.zxing.qrcode.decoder.ErrorCorrectionLevel;
+import com.vaadin.flow.component.AttachEvent;
+import com.vaadin.flow.component.DetachEvent;
+import com.vaadin.flow.component.UI;
 import com.vaadin.flow.component.formlayout.FormLayout;
-import com.vaadin.flow.component.html.H2;
-import com.vaadin.flow.component.html.H3;
+import com.vaadin.flow.component.html.H4;
+import com.vaadin.flow.component.html.Image;
 import com.vaadin.flow.component.html.Main;
-import com.vaadin.flow.component.html.Span;
+import com.vaadin.flow.component.icon.VaadinIcon;
+import com.vaadin.flow.component.orderedlayout.FlexComponent;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.textfield.TextField;
-import com.vaadin.flow.component.AttachEvent;
-import com.vaadin.flow.component.Component;
-import com.vaadin.flow.component.DetachEvent;
-import com.vaadin.flow.component.UI;
+import com.vaadin.flow.component.textfield.TextFieldVariant;
 import com.vaadin.flow.router.PageTitle;
 import com.vaadin.flow.router.Route;
 import com.vaadin.flow.spring.annotation.SpringComponent;
 import com.vaadin.flow.spring.annotation.UIScope;
-import com.vaadin.flow.theme.lumo.LumoUtility; // Benötigt für Styling-Utilities
-import com.vaadin.flow.theme.lumo.LumoUtility.Background;
-import com.vaadin.flow.theme.lumo.LumoUtility.Border;
-import com.vaadin.flow.theme.lumo.LumoUtility.BorderColor;
-import com.vaadin.flow.theme.lumo.LumoUtility.FontSize;
-import com.vaadin.flow.theme.lumo.LumoUtility.FontWeight;
 import com.vaadin.flow.theme.lumo.LumoUtility.Gap;
-import com.vaadin.flow.theme.lumo.LumoUtility.Margin;
-import com.vaadin.flow.theme.lumo.LumoUtility.Padding;
-// Shadow-Import bleibt entfernt
-
-
 import de.jklein.pharmalinkclient.security.UserSession;
 import de.jklein.pharmalinkclient.service.StateService;
 import de.jklein.pharmalinkclient.views.MainLayout;
 import jakarta.annotation.security.PermitAll;
 import org.springframework.beans.factory.annotation.Autowired;
-import com.vaadin.flow.component.orderedlayout.FlexComponent;
-import com.vaadin.flow.component.icon.Icon;
-import com.vaadin.flow.component.icon.VaadinIcon;
 
+import javax.imageio.ImageIO;
+import java.awt.image.BufferedImage;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.util.Base64;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.function.Consumer;
 
@@ -50,18 +49,22 @@ public class DashboardView extends Main {
 
     private final StateService stateService;
     private final UserSession userSession;
+
+    // Kachel 1: User Info
     private final TextField usernameField;
     private final TextField roleField;
+
+    // Kachel 2: Statistiken
+    private final TextField actorCountField;
+    private final TextField medikamentCountField;
+    private final TextField myUnitsCountField;
+
+    // Kachel 3: Actor ID & QR
     private final TextField actorIdReadonlyField;
-
-    private TextField actorCountField;
-    private TextField medikamentCountField;
-    private TextField myUnitsCountField;
-
+    private Image qrCodeImage;
 
     private Consumer<String> actorIdListener;
     private Consumer<Map<String, Object>> cacheStatsListener;
-
 
     @Autowired
     public DashboardView(StateService stateService, UserSession userSession) {
@@ -69,91 +72,73 @@ public class DashboardView extends Main {
         this.userSession = userSession;
         addClassName("dashboard-view");
 
+        // Haupt-Layout
         VerticalLayout rootLayout = new VerticalLayout();
-        rootLayout.setSpacing(false);
-        rootLayout.setPadding(false);
-        rootLayout.setAlignItems(FlexComponent.Alignment.CENTER);
+        rootLayout.setSpacing(true);
+        rootLayout.setPadding(true);
+        rootLayout.setAlignItems(FlexComponent.Alignment.START);
 
-
-        // 1. Karte: Benutzer- und Akteurinformationen
+        // --- KACHEL 1: BENUTZERINFORMATIONEN ---
         VerticalLayout userInfoCard = createCardLayout();
-        HorizontalLayout userInfoTitleRow = new HorizontalLayout(
-                new H3("Ihre Informationen"),
-                VaadinIcon.USER.create()
-        );
+        HorizontalLayout userInfoTitleRow = new HorizontalLayout(VaadinIcon.USER_CARD.create(), new H4("Ihre Informationen"));
         userInfoTitleRow.setAlignItems(FlexComponent.Alignment.CENTER);
-        userInfoTitleRow.setSpacing(true);
         userInfoCard.add(userInfoTitleRow);
 
-        HorizontalLayout userAndRoleRow = new HorizontalLayout();
-        userAndRoleRow.addClassNames(Gap.MEDIUM);
-        userAndRoleRow.setPadding(false);
-        userAndRoleRow.setSpacing(true);
-
-        usernameField = new TextField("Benutzername");
-        usernameField.setReadOnly(true);
+        usernameField = createReadOnlyTextField("Benutzername", "");
         usernameField.setValue(userSession.getUsername() != null ? userSession.getUsername() : "Nicht angemeldet");
-        usernameField.setWidth("200px");
-        userAndRoleRow.add(usernameField);
 
-        roleField = new TextField("Ihre Rolle");
-        roleField.setReadOnly(true);
-        roleField.setValue("Lädt...");
-        roleField.setWidth("200px");
-        userAndRoleRow.add(roleField);
+        roleField = createReadOnlyTextField("Ihre Rolle", "Lädt...");
 
-        userInfoCard.add(userAndRoleRow);
-
-        actorIdReadonlyField = new TextField("Ihre Akteur-ID");
-        actorIdReadonlyField.setReadOnly(true);
-        actorIdReadonlyField.setValue("Lädt...");
-        actorIdReadonlyField.setWidth("500px");
-        userInfoCard.add(actorIdReadonlyField);
+        FormLayout userForm = new FormLayout(usernameField, roleField);
+        userInfoCard.add(userForm);
 
 
-        // 2. Karte: Statistik-Informationen
+        // --- KACHEL 2: STATISTIKEN ---
         VerticalLayout statsCard = createCardLayout();
-        statsCard.setMinWidth("350px");
-
-        HorizontalLayout statsTitleRow = new HorizontalLayout(
-                new H3("Statistiken"),
-                VaadinIcon.CHART_GRID.create()
-        );
+        HorizontalLayout statsTitleRow = new HorizontalLayout(VaadinIcon.CHART_GRID.create(), new H4("Statistiken"));
         statsTitleRow.setAlignItems(FlexComponent.Alignment.CENTER);
-        statsTitleRow.setSpacing(true);
         statsCard.add(statsTitleRow);
 
-        FormLayout statsFormLayout = new FormLayout();
-        statsFormLayout.setResponsiveSteps(
-                new FormLayout.ResponsiveStep("0", 1) // Alle Felder untereinander
-        );
-
         actorCountField = createReadOnlyTextField("Akteur Anzahl", "Lädt...");
-        actorCountField.addClassName("stat-value-field");
         medikamentCountField = createReadOnlyTextField("Medikament Anzahl", "Lädt...");
-        medikamentCountField.addClassName("stat-value-field");
         myUnitsCountField = createReadOnlyTextField("Meine Einheiten Anzahl", "Lädt...");
-        myUnitsCountField.addClassName("stat-value-field");
-
-        statsFormLayout.add(actorCountField, medikamentCountField, myUnitsCountField);
-
+        FormLayout statsFormLayout = new FormLayout(actorCountField, medikamentCountField, myUnitsCountField);
+        statsFormLayout.setResponsiveSteps(new FormLayout.ResponsiveStep("0", 3));
         statsCard.add(statsFormLayout);
 
 
-        // HorizontalLayout, um die beiden Karten nebeneinander anzuordnen
-        HorizontalLayout cardsContainer = new HorizontalLayout();
-        cardsContainer.addClassNames(Gap.MEDIUM);
-        cardsContainer.setPadding(true);
-        cardsContainer.setSpacing(true);
-        cardsContainer.setWidth("auto");
+        // --- KACHEL 3: AKTEUR-ID & QR-CODE ---
+        VerticalLayout actorIdCard = createCardLayout();
+        actorIdCard.setAlignItems(FlexComponent.Alignment.CENTER);
+        actorIdCard.setWidth("320px");
 
-        cardsContainer.add(userInfoCard, statsCard);
+        HorizontalLayout actorIdTitleRow = new HorizontalLayout(VaadinIcon.BARCODE.create(), new H4("Ihre Akteur-ID"));
+        actorIdTitleRow.setAlignItems(FlexComponent.Alignment.CENTER);
+        actorIdTitleRow.getStyle().set("align-self", "start");
+        actorIdCard.add(actorIdTitleRow);
 
-        rootLayout.add(cardsContainer);
+        actorIdReadonlyField = createReadOnlyTextField("", "Lädt...");
+        actorIdReadonlyField.setWidthFull();
+
+        qrCodeImage = new Image();
+        qrCodeImage.setAlt("QR-Code für Akteur-ID");
+        qrCodeImage.setVisible(false);
+        qrCodeImage.setWidth("200px");
+        qrCodeImage.setHeight("200px");
+        // HIER IST DIE ANPASSUNG:
+        qrCodeImage.addClassName("qr-code-image");
+
+        actorIdCard.add(qrCodeImage, actorIdReadonlyField);
+
+
+        // --- LAYOUT-ZUSAMMENFÜHRUNG ---
+        HorizontalLayout topRow = new HorizontalLayout(userInfoCard, statsCard);
+        topRow.addClassName(Gap.MEDIUM);
+
+        rootLayout.add(topRow, actorIdCard);
         add(rootLayout);
 
-        // Füge Copy-to-Clipboard-Funktion zu allen Textfeldern hinzu
-        addCopyToClipboardOnClick(usernameField); // Nur das Feld übergeben
+        addCopyToClipboardOnClick(usernameField);
         addCopyToClipboardOnClick(roleField);
         addCopyToClipboardOnClick(actorIdReadonlyField);
         addCopyToClipboardOnClick(actorCountField);
@@ -165,40 +150,29 @@ public class DashboardView extends Main {
     protected void onAttach(AttachEvent attachEvent) {
         super.onAttach(attachEvent);
 
-        actorIdListener = rawActorId -> {
-            UI.getCurrent().access(() -> {
-                if (rawActorId != null && !rawActorId.isEmpty()) {
-                    actorIdReadonlyField.setValue(rawActorId);
-
-                    String role = "Unbekannt";
-                    if (rawActorId.contains("-")) {
-                        String[] parts = rawActorId.split("-", 2);
-                        if (parts.length > 0) {
-                            role = parts[0];
-                        }
-                    }
-                    roleField.setValue(role);
-                } else {
-                    roleField.setValue("Nicht verfügbar");
-                    actorIdReadonlyField.setValue("Nicht verfügbar");
+        actorIdListener = rawActorId -> UI.getCurrent().access(() -> {
+            if (rawActorId != null && !rawActorId.isEmpty()) {
+                actorIdReadonlyField.setValue(rawActorId);
+                String role = rawActorId.contains("-") ? rawActorId.split("-", 2)[0] : "Unbekannt";
+                roleField.setValue(role);
+                String base64QrCode = generateQrCodeBase64(rawActorId);
+                if (base64QrCode != null) {
+                    qrCodeImage.setSrc("data:image/png;base64," + base64QrCode);
+                    qrCodeImage.setVisible(true);
                 }
-            });
-        };
+            } else {
+                roleField.setValue("N/A");
+                actorIdReadonlyField.setValue("N/A");
+                qrCodeImage.setVisible(false);
+            }
+        });
         stateService.addCurrentActorIdListener(actorIdListener);
 
-        cacheStatsListener = stats -> {
-            UI.getCurrent().access(() -> {
-                if (stats != null && !stats.isEmpty()) {
-                    actorCountField.setValue(stats.getOrDefault("actorCount", 0).toString());
-                    medikamentCountField.setValue(stats.getOrDefault("medikamentCount", 0).toString());
-                    myUnitsCountField.setValue(stats.getOrDefault("myUnitsCount", 0).toString());
-                } else {
-                    actorCountField.setValue("N/A");
-                    medikamentCountField.setValue("N/A");
-                    myUnitsCountField.setValue("N/A");
-                }
-            });
-        };
+        cacheStatsListener = stats -> UI.getCurrent().access(() -> {
+            actorCountField.setValue(stats.getOrDefault("actorCount", "N/A").toString());
+            medikamentCountField.setValue(stats.getOrDefault("medikamentCount", "N/A").toString());
+            myUnitsCountField.setValue(stats.getOrDefault("myUnitsCount", "N/A").toString());
+        });
         stateService.addCacheStatsListener(cacheStatsListener);
 
         actorIdListener.accept(stateService.getCurrentActorId());
@@ -208,67 +182,46 @@ public class DashboardView extends Main {
     @Override
     protected void onDetach(DetachEvent detachEvent) {
         super.onDetach(detachEvent);
-        if (actorIdListener != null) {
-            stateService.removeCurrentActorIdListener(actorIdListener);
-        }
-        if (cacheStatsListener != null) {
-            stateService.removeCacheStatsListener(cacheStatsListener);
-        }
+        if (actorIdListener != null) stateService.removeCurrentActorIdListener(actorIdListener);
+        if (cacheStatsListener != null) stateService.removeCacheStatsListener(cacheStatsListener);
     }
 
-    /**
-     * Helfer-Methode zum Erstellen eines schreibgeschützten TextField.
-     */
     private TextField createReadOnlyTextField(String label, String initialValue) {
         TextField field = new TextField(label);
         field.setReadOnly(true);
         field.setValue(initialValue);
+        field.addThemeVariants(TextFieldVariant.LUMO_SMALL);
         return field;
     }
 
-    /**
-     * Fügt einem TextField einen Klick-Listener hinzu, der dessen Inhalt in die Zwischenablage kopiert.
-     * Nutzt die document.execCommand('copy') Methode.
-     */
     private void addCopyToClipboardOnClick(TextField textField) {
-        textField.getElement().addEventListener("click", event -> {
-            UI.getCurrent().access(() -> {
-                String js =
-                        "try {" +
-                                "    const inputElement = $0.inputElement || $0.shadowRoot.querySelector('input');" + // Vaadin 24 may use shadow DOM
-                                "    if (inputElement) {" +
-                                "        inputElement.select();" +
-                                "        document.execCommand('copy');" +
-                                "        console.log('Text copied using execCommand:', inputElement.value);" +
-                                "    } else {" +
-                                "        console.warn('Could not find input element to copy.');" +
-                                "    }" +
-                                "} catch (err) {" +
-                                "    console.error('Failed to copy text using execCommand: ', err);" +
-                                "}";
-                // $0 bezieht sich auf das TextField-Element im DOM
-                UI.getCurrent().getPage().executeJs(js, textField.getElement());
-            });
-        });
+        textField.getElement().addEventListener("click", e -> UI.getCurrent().getPage()
+                .executeJs("const i=$0.inputElement||$0.shadowRoot.querySelector('input'); i.select(); document.execCommand('copy');",
+                        textField.getElement()));
     }
 
-    /**
-     * Helfer-Methode zum Erstellen eines Layouts, das wie eine Karte aussieht.
-     */
     private VerticalLayout createCardLayout() {
         VerticalLayout card = new VerticalLayout();
-        card.addClassNames(
-                Background.BASE,
-                Border.ALL,
-                BorderColor.CONTRAST_10,
-                "border-radius-l", // Klasse für Abrundung (prüfen Sie Ihre CSS-Datei!)
-                Padding.LARGE,     // Mehr Innenabstand
-                Margin.MEDIUM      // Außenabstand
-        );
+        card.addClassName("dashboard-card");
         card.setSpacing(false);
+
         card.setPadding(true);
-        card.setWidth("auto");
-        card.setHeight("auto");
         return card;
+    }
+
+    private String generateQrCodeBase64(String data) {
+        try {
+            Map<EncodeHintType, Object> hints = new HashMap<>();
+            hints.put(EncodeHintType.ERROR_CORRECTION, ErrorCorrectionLevel.L);
+            hints.put(EncodeHintType.MARGIN, 1);
+            BitMatrix bitMatrix = new QRCodeWriter().encode(data, BarcodeFormat.QR_CODE, 200, 200, hints);
+            BufferedImage bufferedImage = MatrixToImageWriter.toBufferedImage(bitMatrix);
+            ByteArrayOutputStream baos = new ByteArrayOutputStream();
+            ImageIO.write(bufferedImage, "png", baos);
+            return Base64.getEncoder().encodeToString(baos.toByteArray());
+        } catch (WriterException | IOException e) {
+            e.printStackTrace();
+            return null;
+        }
     }
 }

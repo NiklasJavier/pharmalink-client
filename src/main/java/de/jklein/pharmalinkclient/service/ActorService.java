@@ -116,9 +116,11 @@ public class ActorService {
         return Collections.emptyList();
     }
 
-    // GET /api/v1/hersteller/{herstellerId}
-    public ActorResponseDto getHerstellerById(String herstellerId) {
-        String url = backendConfig.getBaseUrl() + "/hersteller/" + herstellerId;
+    // GET /api/v1/hersteller/{herstellerId} - Diese Methode wurde zuvor hinzugefügt und ist wichtig für die Akteur-Details.
+    public ActorResponseDto getActorDetailsById(String actorId) {
+        // Obwohl der Endpunkt '/hersteller/{herstellerId}' heißt, nehmen wir an, dass er allgemeine Akteur-Details abrufen kann.
+        // Wenn nicht, müsste ein allgemeinerer Backend-Endpunkt '/actors/{actorId}' existieren und hier genutzt werden.
+        String url = backendConfig.getBaseUrl() + "/hersteller/" + actorId;
         HttpEntity<String> entity = createHttpEntityWithJwt();
 
         try {
@@ -130,12 +132,13 @@ public class ActorService {
             );
             return response.getBody();
         } catch (HttpClientErrorException e) {
-            System.err.println("Fehler beim Laden von Hersteller mit ID '" + herstellerId + "': " + e.getStatusCode() + " " + e.getResponseBodyAsString());
+            System.err.println("Fehler beim Laden von Akteur-Details mit ID '" + actorId + "': " + e.getStatusCode() + " " + e.getResponseBodyAsString());
         } catch (Exception e) {
-            System.err.println("Allgemeiner Fehler beim Laden von Hersteller mit ID: " + e.getMessage());
+            System.err.println("Allgemeiner Fehler beim Laden von Akteur-Details mit ID: " + e.getMessage());
         }
         return null;
     }
+
 
     // GET /api/v1/hersteller/search?search={nameQuery}
     public List<ActorResponseDto> searchHerstellerByName(String nameQuery) {

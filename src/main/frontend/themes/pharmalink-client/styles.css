@@ -1,7 +1,10 @@
 @import url('./main-layout.css');
 @import url('./views/dashboard-view.css');
+@import url('./views/actor-explorer-view.css');
 @import url('./views/medikamente-view.css');
-@import url('@fontsource/cairo/index.css');    html {
+@import url('./views/units-view.css');
+
+html {
       --lumo-shade-5pct: rgba(33, 33, 33, 0.05);
       --lumo-shade-10pct: rgba(33, 33, 33, 0.1);
       --lumo-shade-20pct: rgba(33, 33, 33, 0.2);
@@ -29,7 +32,12 @@
       --lumo-border-radius-s: calc(var(--lumo-size-m) / 6);
       --lumo-border-radius-m: calc(var(--lumo-size-m) / 2);
       --lumo-border-radius-l: var(--lumo-size-m);
---lumo-font-family: Cairo;
+      --lumo-border-radius-xl: var(--lumo-size-l);
+      --lumo-border-radius-s: calc(var(--lumo-size-m) / 6);
+      --lumo-border-radius-m: calc(var(--lumo-size-m) / 2);
+      --lumo-border-radius-l: var(--lumo-size-m);
+      --lumo-font-family: Cairo;
+      --lumo-size-xl: 3rem;
 
     }
 
@@ -255,4 +263,28 @@
     white-space: normal; /* Erlaubt Zeilenumbruch für lange Labels */
     word-break: break-word; /* Bricht Wörter um */
     max-width: 100%; /* Stellt sicher, dass das Label nicht überläuft */
+}
+
+/* Ersetzt die alten dashboard-view-Regeln für Ränder */
+.dashboard-view vaadin-board-row > * {
+    border: none; /* Entfernt die alten Ränder */
+}
+
+/* Neuer, moderner Stil für unsere Dashboard-Karten */
+.dashboard-card {
+    background-color: var(--lumo-contrast-5pct); /* Leicht grauer Hintergrund */
+    border-radius: var(--lumo-border-radius-l);   /* Stärkere Abrundung der Ecken */
+    box-shadow: var(--lumo-box-shadow-s);         /* Subtiler Schatten */
+    padding: var(--lumo-space-l);                 /* Einheitlicher Innenabstand */
+}
+
+/* Stil für die Statistik-Werte */
+.stat-value-field {
+    font-size: var(--lumo-font-size-xl);
+    font-weight: 500;
+}
+
+.qr-code-image {
+    border-radius: var(--lumo-border-radius-xl); /* Starke Abrundung */
+    overflow: hidden; /* Stellt sicher, dass die scharfen Ecken des Bildes abgeschnitten werden */
 }
