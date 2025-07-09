@@ -17,7 +17,7 @@ import jakarta.annotation.security.PermitAll;
 import com.vaadin.flow.component.notification.Notification;
 import com.vaadin.flow.component.ClickEvent;
 import com.vaadin.flow.component.ComponentEventListener;
-import com.vaadin.flow.component.orderedlayout.FlexComponent; // **WICHTIG: Dieser Import MUSS vorhanden sein**
+import com.vaadin.flow.component.orderedlayout.FlexComponent;
 import com.vaadin.flow.component.textfield.TextField;
 import com.vaadin.flow.component.tabs.Tab;
 import com.vaadin.flow.component.tabs.Tabs;
@@ -39,7 +39,7 @@ import com.vaadin.flow.component.UI;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.Objects;
-// import com.vaadin.flow.router.Location; // Nicht mehr direkt benötigt
+import com.vaadin.flow.router.Location;
 
 
 @PageTitle("Medikamente")
@@ -93,7 +93,6 @@ public class MedikamenteView extends VerticalLayout {
         // Operationsleiste
         operationBar = new HorizontalLayout();
         operationBar.setWidthFull();
-        // **Hier ist die Problemzeile**
         operationBar.setJustifyContentMode(FlexComponent.JustifyContentMode.BETWEEN);
         operationBar.setAlignItems(FlexComponent.Alignment.CENTER);
         operationBar.setPadding(true);
@@ -157,23 +156,9 @@ public class MedikamenteView extends VerticalLayout {
             public void propertyChange(PropertyChangeEvent evt) {
                 String medId = (String) evt.getNewValue();
                 if (medId != null && !medId.isEmpty()) {
-                    // 1. Zur MedikamenteView navigieren
-                    try {
-                        String currentPathSegment = "";
-                        String fullPath = UI.getCurrent().getPage().getLocation().getPath();
-                        if (fullPath != null && !fullPath.isEmpty()) {
-                            String[] segments = fullPath.split("/");
-                            if (segments.length > 1) {
-                                currentPathSegment = segments[1];
-                            }
-                        }
-
-                        if (!currentPathSegment.equals("medikamente")) {
-                            UI.getCurrent().navigate(MedikamenteView.class);
-                        }
-                    } catch (Exception e) {
-                        System.err.println("Fehler beim Abrufen/Parsen der aktuellen Pfadsegmente: " + e.getMessage());
-                    }
+                    // **KORREKTUR: Entfernt die Prüfung der aktuellen URL, da sie Fehler verursacht.**
+                    // Dies bedeutet, dass UI.getCurrent().navigate() immer ausgeführt wird.
+                    UI.getCurrent().navigate(MedikamenteView.class);
 
                     // 2. Den "Alle" Tab auswählen (falls der Inhalt nicht sowieso dieser ist)
                     tabs.setSelectedTab(alleTab);
