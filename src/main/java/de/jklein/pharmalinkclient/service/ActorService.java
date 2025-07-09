@@ -2,12 +2,10 @@ package de.jklein.pharmalinkclient.service;
 
 import de.jklein.pharmalinkclient.config.BackendConfig;
 import de.jklein.pharmalinkclient.dto.ActorResponseDto;
+import de.jklein.pharmalinkclient.dto.ActorUpdateRequestDto;
 import de.jklein.pharmalinkclient.security.UserSession;
+import org.springframework.http.*;
 import org.springframework.web.client.RestTemplate;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpEntity;
-import org.springframework.http.HttpMethod;
-import org.springframework.http.ResponseEntity;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.util.UriComponentsBuilder; // Für URL-Parameter
 
@@ -163,5 +161,39 @@ public class ActorService {
             System.err.println("Allgemeiner Fehler beim Suchen von Hersteller nach Name: " + e.getMessage());
         }
         return Collections.emptyList();
+    }
+
+    public boolean updateActor(String actorId, ActorUpdateRequestDto requestDto) {
+        String url = backendConfig.getBaseUrl() + "/actors/" + actorId;
+        HttpEntity<ActorUpdateRequestDto> entity = createHttpEntityWithJwtAndBody(requestDto); // Nutzt die neue Methode
+
+        try {
+            restTemplate.exchange(
+                    url,
+                    HttpMethod.PUT,
+                    entity,
+                    Void.class
+            );
+            System.out.println("Akteur mit ID " + actorId + " erfolgreich aktualisiert.");
+            return true;
+        } catch (HttpClientErrorException e) {
+            System.err.println("Fehler beim Aktualisieren des Akteurs mit ID '" + actorId + "': " + e.getStatusCode() + " " + e.getResponseBodyAsString());
+            return false;
+        } catch (Exception e) {
+            System.err.println("Allgemeiner Fehler beim Aktualisieren des Akteurs: " + e.getMessage());
+            return false;
+        }
+    }
+
+    private <T> HttpEntity<T> createHttpEntityWithJwtAndBody(T body) {
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_JSON); // Set Content-Type for JSON body
+        String jwt = userSession.getJwt();
+        if (jwt != null && !jwt.isEmpty()) {
+            headers.setBearerAuth(jwt);
+        } else {
+            System.err.println("Kein JWT-Token in der UserSession verfügbar. Authentifizierung erforderlich.");
+        }
+        return new HttpEntity<>(body, headers);
     }
 }

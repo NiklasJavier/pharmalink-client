@@ -4,6 +4,7 @@ import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.html.Span;
 import com.vaadin.flow.router.PageTitle;
 import com.vaadin.flow.router.Route;
+import de.jklein.pharmalinkclient.dto.ActorUpdateRequestDto;
 import de.jklein.pharmalinkclient.views.MainLayout;
 import jakarta.annotation.security.PermitAll;
 
@@ -299,16 +300,29 @@ public class ActorExplorerView extends VerticalLayout {
         saveButton.addClickListener(e -> {
             try {
                 binder.writeBean(actorToEdit);
+
+                ActorUpdateRequestDto updateRequest = new ActorUpdateRequestDto();
+                updateRequest.setName(actorToEdit.getBezeichnung());
                 Map<String, Object> updatedIpfsData = editableIpfsData.stream()
                         .filter(entry -> entry.getKey() != null && !entry.getKey().isEmpty())
                         .collect(Collectors.toMap(IpfsEntry::getKey, IpfsEntry::getValue));
-                actorToEdit.setIpfsData(updatedIpfsData);
-                Notification.show("Stammdaten gespeichert (simuliert).", 3000, Notification.Position.MIDDLE);
-                dialog.close();
+                updateRequest.setIpfsData(updatedIpfsData);
+
+                boolean success = actorService.updateActor(actorToEdit.getActorId(), updateRequest);
+
+                if (success) {
+                    Notification.show("Stammdaten erfolgreich gespeichert.", 3000, Notification.Position.MIDDLE);
+                    dialog.close();
+                    performActorSearch();
+                } else {
+                    Notification.show("Fehler beim Speichern der Stammdaten im Backend.", 5000, Notification.Position.MIDDLE);
+                }
+
             } catch (ValidationException ex) {
                 Notification.show("Fehler beim Speichern: Bitte alle Pflichtfelder ausfüllen.", 3000, Notification.Position.MIDDLE);
             }
         });
+
 
         Button cancelButton = new Button("Abbrechen", event -> dialog.close());
         cancelButton.addThemeVariants(ButtonVariant.LUMO_TERTIARY);
