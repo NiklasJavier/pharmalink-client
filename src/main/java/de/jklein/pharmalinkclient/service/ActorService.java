@@ -47,7 +47,7 @@ public class ActorService {
 
     // GET /api/v1/actors
     public List<ActorResponseDto> getAllActors() {
-        String url = backendConfig.getBaseUrl() + "/search/actors";
+        String url = backendConfig.getBaseUrl() + "/v1/search/actors";
         HttpEntity<String> entity = createHttpEntityWithJwt();
 
         try {

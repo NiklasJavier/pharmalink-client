@@ -33,7 +33,7 @@ public class MedikamentService {
     }
 
     public List<MedikamentResponseDto> getAllMedikamente() {
-        String url = backendConfig.getBaseUrl() + "/search/medikamente"; // baseUrl von BackendConfig
+        String url = backendConfig.getBaseUrl() + "/v1/search/medikamente"; // baseUrl von BackendConfig
         HttpHeaders headers = new HttpHeaders();
 
         String jwt = userSession.getJwt(); // JWT nur von UserSession
