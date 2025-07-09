@@ -10,12 +10,12 @@ import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.spring.annotation.SpringComponent;
 import com.vaadin.flow.spring.annotation.UIScope;
 import com.vaadin.flow.component.textfield.TextField;
+import com.vaadin.flow.component.splitlayout.SplitLayout;
 
 import de.jklein.pharmalinkclient.dto.ActorResponseDto;
 import de.jklein.pharmalinkclient.dto.MedikamentResponseDto;
 import de.jklein.pharmalinkclient.service.StateService;
 import de.jklein.pharmalinkclient.service.MedikamentService;
-
 
 import java.util.AbstractMap;
 import java.util.List;
@@ -24,7 +24,7 @@ import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
 
-import com.vaadin.flow.theme.lumo.LumoUtility;
+import com.vaadin.flow.theme.lumo.LumoUtility; // Dieser Import bleibt, falls andere LumoUtility-Klassen/Methoden verwendet werden
 import com.vaadin.flow.component.UI;
 import com.vaadin.flow.component.notification.Notification;
 import com.vaadin.flow.dom.DomEventListener;
@@ -32,7 +32,7 @@ import com.vaadin.flow.dom.DomEventListener;
 
 @SpringComponent
 @UIScope
-public class ActorDetailContent extends Div {
+public class ActorDetailContent extends SplitLayout {
 
     private final StateService stateService;
     private final MedikamentService medikamentService;
@@ -58,11 +58,22 @@ public class ActorDetailContent extends Div {
         this.medikamentService = medikamentService;
         addClassName("actor-detail-content");
         setSizeFull();
-        addClassNames(LumoUtility.Padding.LARGE);
+        // **KORREKTUR:** LumoUtility.Padding.LARGE ersetzt durch String "padding-l"
+        addClassNames("padding-l");
+
+        this.setOrientation(SplitLayout.Orientation.VERTICAL);
+        this.setSplitterPosition(50);
+
+        VerticalLayout actorInfoSection = new VerticalLayout();
+        actorInfoSection.addClassName("actor-info-section");
+        actorInfoSection.setSizeFull();
+        actorInfoSection.addClassNames("padding-l"); // Padding für diesen Bereich
+        actorInfoSection.setSpacing(false);
 
         mainTitle = new H3("Akteur Details");
+        // **KORREKTUR:** LumoUtility.Margin.Bottom.XL ersetzt durch String "margin-bottom-xl"
         mainTitle.addClassNames("margin-bottom-xl");
-        add(mainTitle);
+        actorInfoSection.add(mainTitle);
 
         detailsLayout = new FormLayout();
         detailsLayout.addClassName("actor-main-details");
@@ -70,7 +81,8 @@ public class ActorDetailContent extends Div {
                 new FormLayout.ResponsiveStep("0", 1),
                 new FormLayout.ResponsiveStep("500px", 2)
         );
-        detailsLayout.addClassNames(LumoUtility.Gap.SMALL);
+        // **KORREKTUR:** LumoUtility.Gap.SMALL ersetzt durch String "gap-s"
+        detailsLayout.addClassNames("gap-s");
 
         actorIdField = createReadOnlyCopyableTextField("Akteur ID");
         bezeichnungField = createReadOnlyCopyableTextField("Bezeichnung");
@@ -78,16 +90,17 @@ public class ActorDetailContent extends Div {
         emailField = createReadOnlyCopyableTextField("E-Mail");
 
         detailsLayout.add(actorIdField, bezeichnungField, roleField, emailField);
-
-        add(detailsLayout);
+        actorInfoSection.add(detailsLayout);
 
         ipfsDataSection = new VerticalLayout();
         ipfsDataSection.addClassName("ipfs-data-section");
-        ipfsDataSection.addClassNames("margin-top-l", LumoUtility.Padding.Top.MEDIUM);
+        // **KORREKTUR:** LumoUtility.Margin.Top.L ersetzt durch String "margin-top-l"
+        ipfsDataSection.addClassNames("margin-top-l", "padding-top-m"); // **KORREKTUR:** LumoUtility.Padding.Top.MEDIUM zu String "padding-top-m"
         ipfsDataSection.getStyle().set("border-top", "1px solid var(--lumo-contrast-10pct)");
 
         H4 ipfsDataTitle = new H4("IPFS Daten");
-        ipfsDataTitle.addClassNames(LumoUtility.Margin.Bottom.SMALL);
+        // **KORREKTUR:** LumoUtility.Margin.Bottom.SMALL ersetzt durch String "margin-bottom-s"
+        ipfsDataTitle.addClassNames("margin-bottom-s");
         ipfsDataSection.add(ipfsDataTitle);
 
         ipfsDataGrid = new Grid<>();
@@ -99,16 +112,17 @@ public class ActorDetailContent extends Div {
 
         ipfsDataSection.add(ipfsDataGrid);
         ipfsDataSection.setVisible(false);
-
-        add(ipfsDataSection);
+        actorInfoSection.add(ipfsDataSection);
 
         actorMedicationsSection = new VerticalLayout();
-        actorMedicationsSection.addClassName("actor-medications-section");
-        actorMedicationsSection.addClassNames("margin-top-l", LumoUtility.Padding.Top.MEDIUM);
+        actorMedicationsSection.addClassName("actor-medications-section-container");
+        // **KORREKTUR:** LumoUtility.Margin.Top.L ersetzt durch String "margin-top-l"
+        actorMedicationsSection.addClassNames("margin-top-l", "padding-l"); // **KORREKTUR:** LumoUtility.Padding.LARGE zu String "padding-l"
         actorMedicationsSection.getStyle().set("border-top", "1px solid var(--lumo-contrast-10pct)");
 
         H4 medicationsTitle = new H4("Zugeordnete Medikamente");
-        medicationsTitle.addClassNames(LumoUtility.Margin.Bottom.SMALL);
+        // **KORREKTUR:** LumoUtility.Margin.Bottom.SMALL ersetzt durch String "margin-bottom-s"
+        medicationsTitle.addClassNames("margin-bottom-s");
         actorMedicationsSection.add(medicationsTitle);
 
         actorMedicationsGrid = new Grid<>(MedikamentResponseDto.class, false);
@@ -135,22 +149,24 @@ public class ActorDetailContent extends Div {
         actorMedicationsGrid.addColumn("bezeichnung").setHeader("Bezeichnung").setAutoWidth(true);
         actorMedicationsGrid.addColumn("medId").setHeader("Medikament ID").setAutoWidth(true);
 
-        // Listener für Klick auf Medikament im Grid
         actorMedicationsGrid.asSingleSelect().addValueChangeListener(event -> {
             MedikamentResponseDto selectedMedikament = event.getValue();
-            if (selectedMedikament != null) { // **KORREKTUR: Nur bei tatsächlicher Auswahl reagieren**
+            if (selectedMedikament != null) {
+                UI.getCurrent().navigate(de.jklein.pharmalinkclient.views.medikamente.MedikamenteView.class);
                 stateService.setNavigateToMedikamentId(selectedMedikament.getMedId());
-                actorMedicationsGrid.asSingleSelect().clear(); // Auswahl im Grid aufheben
+                actorMedicationsGrid.asSingleSelect().clear();
             }
         });
-
 
         actorMedicationsSection.add(actorMedicationsGrid);
         actorMedicationsSection.setVisible(false);
 
-        add(actorMedicationsSection);
+        this.addToPrimary(actorInfoSection);
+        this.addToSecondary(actorMedicationsSection);
 
         stateService.addSelectedActorListener(this::updateDetails);
+
+        this.setVisible(false);
     }
 
     private TextField createReadOnlyCopyableTextField(String label) {
@@ -174,6 +190,7 @@ public class ActorDetailContent extends Div {
 
     public void updateDetails(ActorResponseDto actor) {
         if (actor != null) {
+            this.setVisible(true);
             mainTitle.setText("Details für: " + actor.getBezeichnung());
             actorIdField.setValue(actor.getActorId() != null ? actor.getActorId() : "");
             bezeichnungField.setValue(actor.getBezeichnung() != null ? actor.getBezeichnung() : "");
@@ -202,6 +219,7 @@ public class ActorDetailContent extends Div {
             actorMedicationsSection.setVisible(!associatedMedikamente.isEmpty());
 
         } else {
+            this.setVisible(false);
             mainTitle.setText("Akteur Details");
             actorIdField.setValue("");
             bezeichnungField.setValue("");

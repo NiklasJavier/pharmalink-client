@@ -6,64 +6,101 @@ import com.vaadin.flow.component.grid.Grid;
 import com.vaadin.flow.component.grid.GridVariant;
 import com.vaadin.flow.spring.annotation.SpringComponent;
 import com.vaadin.flow.spring.annotation.UIScope;
+import com.vaadin.flow.component.button.Button; // Dieser Import wird nicht mehr benötigt, aber schadet nicht, wenn nicht gelöscht
+import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
+import com.vaadin.flow.component.orderedlayout.FlexComponent;
 
 import de.jklein.pharmalinkclient.dto.ActorResponseDto;
-import de.jklein.pharmalinkclient.service.ActorService;   // Import für den Akteur Service
-import de.jklein.pharmalinkclient.service.StateService;   // Import für den State Service
+import de.jklein.pharmalinkclient.dto.ActorFilterCriteriaDto;
+import de.jklein.pharmalinkclient.service.ActorService;
+import de.jklein.pharmalinkclient.service.StateService;
 
-import org.springframework.beans.factory.annotation.Autowired; // Import für Spring Autowiring
+import org.springframework.beans.factory.annotation.Autowired;
 
-import java.util.List; // Import für List
+import java.util.List;
+import java.util.Optional;
+import java.util.function.Consumer;
+import java.util.stream.Collectors;
 
 
-@SpringComponent // Macht diese Klasse zu einer Spring-verwalteten Komponente
-@UIScope        // Stellt sicher, dass eine Instanz pro UI-Sitzung erstellt wird
+@SpringComponent
+@UIScope
 public class ActorMasterContent extends Div {
 
     private final ActorService actorService;
     private final StateService stateService;
-    private final Grid<ActorResponseDto> grid; // Das Grid zur Anzeige der Akteure
+    private Grid<ActorResponseDto> grid;
 
-    // Konstruktor: Spring injiziert automatisch die benötigten Services
     @Autowired
     public ActorMasterContent(ActorService actorService, StateService stateService) {
         this.actorService = actorService;
         this.stateService = stateService;
 
-        // Grundlegendes Styling und Layout für diesen Master-Bereich
-        addClassName("actor-master-content"); // CSS-Klasse für spezifisches Styling
-        getStyle().set("background-color", "var(--lumo-contrast-5pct)"); // Leichter Hintergrund
-        getStyle().set("padding", "var(--lumo-space-m)");                // Innenabstand
-        setSizeFull(); // Füllt den gesamten verfügbaren Platz aus
+        addClassName("actor-master-content");
+        getStyle().set("background-color", "var(--lumo-contrast-5pct)");
+        getStyle().set("padding", "var(--lumo-space-m)");
+        setSizeFull();
 
-        add(new H3("Akteur-Liste (Master)")); // Überschrift des Master-Bereichs
+        // Titel und (entfernter) Button
+        HorizontalLayout headerLayout = new HorizontalLayout();
+        headerLayout.setWidthFull();
+        headerLayout.setAlignItems(FlexComponent.Alignment.CENTER);
+        headerLayout.setJustifyContentMode(FlexComponent.JustifyContentMode.BETWEEN);
 
-        // Initialisierung des Grids
-        grid = new Grid<>(ActorResponseDto.class, false); // Grid für ActorResponseDto, keine automatische Spalten
-        grid.addThemeVariants(GridVariant.LUMO_ROW_STRIPES, GridVariant.LUMO_NO_BORDER); // Lumo-Styling-Varianten
-        grid.setSizeFull(); // Grid füllt den Container aus
+        H3 title = new H3("Akteur-Liste (Master)");
+        headerLayout.add(title);
 
-        // Spaltendefinitionen für das Akteur-Grid
+        // **ENTFERNT:** Button clearSelectionButton = new Button("Auswahl aufheben");
+        // **ENTFERNT:** clearSelectionButton.addClickListener(event -> { grid.asSingleSelect().clear(); });
+        // **ENTFERNT:** headerLayout.add(clearSelectionButton);
+        add(headerLayout);
+
+        grid = new Grid<>(ActorResponseDto.class, false);
+        grid.addThemeVariants(GridVariant.LUMO_ROW_STRIPES, GridVariant.LUMO_NO_BORDER);
+        grid.setSizeFull();
+
         grid.addColumn("bezeichnung").setHeader("Bezeichnung").setAutoWidth(true);
         grid.addColumn("email").setHeader("E-Mail").setAutoWidth(true);
         grid.addColumn("role").setHeader("Rolle").setAutoWidth(true);
         grid.addColumn("actorId").setHeader("Akteur ID").setAutoWidth(true);
-        grid.addColumn("ipfsLink").setHeader("IPFS Link").setAutoWidth(true);
 
-        // Daten laden
-        List<ActorResponseDto> actors = actorService.getAllActors(); // Alle Akteure vom Service abrufen
-        grid.setItems(actors); // Daten im Grid anzeigen
+        add(grid);
 
-        // Automatische Selektion des ersten Elements beim Laden der Seite
-        if (!actors.isEmpty()) {
-            grid.asSingleSelect().setValue(actors.get(0)); // Den ersten Akteur auswählen
-        }
+        stateService.addActorFilterCriteriaListener(this::updateGridWithFilters);
 
-        // Listener für die Grid-Auswahl: Bei Auswahl eines Akteurs den StateService aktualisieren
+        updateGridWithFilters(stateService.getCurrentActorFilterCriteria());
+
         grid.asSingleSelect().addValueChangeListener(event -> {
-            stateService.setSelectedActor(event.getValue()); // Setzt den ausgewählten Akteur im StateService
+            stateService.setSelectedActor(event.getValue());
         });
+    }
 
-        add(grid); // Das Grid zum Master-Bereich hinzufügen
+    public void updateGridWithFilters(Optional<ActorFilterCriteriaDto> criteriaOptional) {
+        List<ActorResponseDto> allActors = actorService.getAllActors();
+        List<ActorResponseDto> filteredActors = allActors;
+
+        if (criteriaOptional.isPresent()) {
+            ActorFilterCriteriaDto criteria = criteriaOptional.get();
+            String searchTerm = criteria.getSearchTerm() != null ? criteria.getSearchTerm().toLowerCase() : "";
+
+            if (!searchTerm.isEmpty()) {
+                filteredActors = allActors.stream()
+                        .filter(actor ->
+                                (actor.getBezeichnung() != null && actor.getBezeichnung().toLowerCase().contains(searchTerm)) ||
+                                        (actor.getActorId() != null && actor.getActorId().toLowerCase().contains(searchTerm)) ||
+                                        (actor.getEmail() != null && actor.getEmail().toLowerCase().contains(searchTerm))
+                        )
+                        .collect(Collectors.toList());
+            }
+        }
+        grid.setItems(filteredActors);
+
+        if (filteredActors.isEmpty()) {
+            grid.asSingleSelect().clear();
+        } else {
+            if (!grid.asSingleSelect().isEmpty() && !filteredActors.contains(grid.asSingleSelect().getValue())) {
+                grid.asSingleSelect().clear();
+            }
+        }
     }
 }

@@ -1,15 +1,17 @@
 package de.jklein.pharmalinkclient.service;
 
+import de.jklein.pharmalinkclient.dto.ActorFilterCriteriaDto;
 import de.jklein.pharmalinkclient.dto.ActorResponseDto;
 import de.jklein.pharmalinkclient.dto.MedikamentFilterCriteriaDto;
 import de.jklein.pharmalinkclient.dto.MedikamentResponseDto;
 import org.springframework.stereotype.Service;
 import com.vaadin.flow.spring.annotation.SpringComponent;
-import com.vaadin.flow.spring.annotation.UIScope;
+import com.vaadin.flow.spring.annotation.VaadinSessionScope;
 
 import java.io.Serializable;
 import java.beans.PropertyChangeListener;
 import java.beans.PropertyChangeSupport;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.concurrent.CopyOnWriteArrayList;
@@ -17,32 +19,48 @@ import java.util.function.Consumer;
 
 
 @SpringComponent
-@UIScope
+@VaadinSessionScope
 public class StateService implements Serializable {
 
     private static final long serialVersionUID = 1L;
 
-    // Medikamenten-bezogener Zustand (bleibt)
+    // Medikamenten-bezogener Zustand (bestehend)
     private Optional<MedikamentResponseDto> selectedMedikament = Optional.empty();
     private Optional<MedikamentFilterCriteriaDto> currentMedikamentFilterCriteria = Optional.empty();
 
     private final transient CopyOnWriteArrayList<Consumer<Optional<MedikamentResponseDto>>> selectedMedikamentListeners = new CopyOnWriteArrayList<>();
     private final transient CopyOnWriteArrayList<Consumer<Optional<MedikamentFilterCriteriaDto>>> medikamentFilterCriteriaListeners = new CopyOnWriteArrayList<>();
 
-    // Akteur-bezogener Zustand (bleibt)
+    // Akteur-bezogener Zustand (bestehend)
     private ActorResponseDto selectedActor;
     private final PropertyChangeSupport actorSelectionChangeSupport = new PropertyChangeSupport(this);
 
-    // **NEU: Zustand für Navigation zu einem spezifischen Medikament**
-    private String navigateToMedikamentId; // Die ID des Medikaments, zu dem navigiert werden soll
+    // Akteur-Filterkriterien (bestehend)
+    private Optional<ActorFilterCriteriaDto> currentActorFilterCriteria = Optional.empty();
+    private final transient CopyOnWriteArrayList<Consumer<Optional<ActorFilterCriteriaDto>>> actorFilterCriteriaListeners = new CopyOnWriteArrayList<>();
+
+    // Zustand für Navigation zu einem spezifischen Medikament (bestehend)
+    private String navigateToMedikamentId;
     private final PropertyChangeSupport navigateToMedikamentSupport = new PropertyChangeSupport(this);
+
+    // NEUE ZUSTANDSVARIABLEN
+    private String currentActorId;
+    private Map<String, Object> cacheStats;
+
+    // Listener für neue Zustandsvariablen
+    private final transient CopyOnWriteArrayList<Consumer<String>> currentActorIdListeners = new CopyOnWriteArrayList<>();
+    private final transient CopyOnWriteArrayList<Consumer<Map<String, Object>>> cacheStatsListeners = new CopyOnWriteArrayList<>();
+
+    // NEU: Flag für den Ladezustand der Systemdaten pro Sitzung
+    private boolean systemDataLoadedForSession = false;
 
 
     public StateService() {
         this.currentMedikamentFilterCriteria = Optional.of(new MedikamentFilterCriteriaDto("", "Ohne Filter"));
+        this.currentActorFilterCriteria = Optional.of(new ActorFilterCriteriaDto(""));
     }
 
-    // Methoden für selectedMedikament (bleiben unverändert)
+    // --- Methoden für selectedMedikament (unverändert) ---
     public Optional<MedikamentResponseDto> getSelectedMedikament() {
         return selectedMedikament;
     }
@@ -65,7 +83,7 @@ public class StateService implements Serializable {
         selectedMedikamentListeners.remove(listener);
     }
 
-    // Methoden für MedikamentFilterCriteriaDto (bleiben unverändert)
+    // --- Methoden für MedikamentFilterCriteriaDto (unverändert) ---
     public Optional<MedikamentFilterCriteriaDto> getCurrentMedikamentFilterCriteria() {
         return currentMedikamentFilterCriteria;
     }
@@ -84,7 +102,7 @@ public class StateService implements Serializable {
         medikamentFilterCriteriaListeners.remove(listener);
     }
 
-    // Methoden für die Akteur-Auswahl (bleiben unverändert)
+    // --- Methoden für die Akteur-Auswahl (unverändert) ---
     public ActorResponseDto getSelectedActor() {
         return selectedActor;
     }
@@ -117,7 +135,7 @@ public class StateService implements Serializable {
         // Implementierung zum Entfernen, falls benötigt
     }
 
-    // **NEU: Methoden für Navigation zu einem spezifischen Medikament**
+    // --- Methoden für Navigation zu einem spezifischen Medikament (unverändert) ---
     public String getNavigateToMedikamentId() {
         return navigateToMedikamentId;
     }
@@ -125,8 +143,7 @@ public class StateService implements Serializable {
     public void setNavigateToMedikamentId(String navigateToMedikamentId) {
         String oldId = this.navigateToMedikamentId;
         this.navigateToMedikamentId = navigateToMedikamentId;
-        // Feuern des Events nur, wenn sich die ID ändert oder sie gelöscht wird
-        if (!Objects.equals(oldId, navigateToMedikamentId)) { // Importieren Sie java.util.Objects
+        if (!Objects.equals(oldId, navigateToMedikamentId)) {
             navigateToMedikamentSupport.firePropertyChange("navigateToMedikamentId", oldId, navigateToMedikamentId);
         }
     }
@@ -135,13 +152,12 @@ public class StateService implements Serializable {
         navigateToMedikamentSupport.addPropertyChangeListener("navigateToMedikamentId", listener);
     }
 
-    // Hilfsmethode für Consumer-basierten Listener
     public void addNavigateToMedikamentListener(Consumer<String> consumer) {
         navigateToMedikamentSupport.addPropertyChangeListener("navigateToMedikamentId", evt -> {
             if (evt.getNewValue() instanceof String) {
                 consumer.accept((String) evt.getNewValue());
             } else {
-                consumer.accept(null); // Wenn die ID null oder nicht String ist
+                consumer.accept(null);
             }
         });
     }
@@ -149,5 +165,70 @@ public class StateService implements Serializable {
     public void removeNavigateToMedikamentListener(PropertyChangeListener listener) {
         navigateToMedikamentSupport.removePropertyChangeListener("navigateToMedikamentId", listener);
     }
-    // Implementierung zum Entfernen von Consumer-basierten Listenern bei Bedarf
+
+    // --- Methoden für Akteur-Filterkriterien (unverändert) ---
+    public Optional<ActorFilterCriteriaDto> getCurrentActorFilterCriteria() {
+        return currentActorFilterCriteria;
+    }
+
+    public void setCurrentActorFilterCriteria(ActorFilterCriteriaDto criteria) {
+        Optional<ActorFilterCriteriaDto> oldCriteria = this.currentActorFilterCriteria;
+        this.currentActorFilterCriteria = Optional.ofNullable(criteria);
+        actorFilterCriteriaListeners.forEach(listener -> listener.accept(this.currentActorFilterCriteria));
+    }
+
+    public void addActorFilterCriteriaListener(Consumer<Optional<ActorFilterCriteriaDto>> listener) {
+        actorFilterCriteriaListeners.add(listener);
+    }
+
+    public void removeActorFilterCriteriaListener(Consumer<Optional<ActorFilterCriteriaDto>> listener) {
+        actorFilterCriteriaListeners.remove(listener);
+    }
+
+    // --- Methoden für NEUE Felder mit Listener-Benachrichtigung ---
+    public String getCurrentActorId() {
+        return currentActorId;
+    }
+
+    public void setCurrentActorId(String currentActorId) {
+        String oldActorId = this.currentActorId;
+        this.currentActorId = currentActorId;
+        currentActorIdListeners.forEach(listener -> listener.accept(this.currentActorId));
+    }
+
+    public void addCurrentActorIdListener(Consumer<String> listener) {
+        currentActorIdListeners.add(listener);
+    }
+
+    public void removeCurrentActorIdListener(Consumer<String> listener) {
+        currentActorIdListeners.remove(listener);
+    }
+
+
+    public Map<String, Object> getCacheStats() {
+        return cacheStats;
+    }
+
+    public void setCacheStats(Map<String, Object> cacheStats) {
+        Map<String, Object> oldCacheStats = this.cacheStats;
+        this.cacheStats = cacheStats;
+        cacheStatsListeners.forEach(listener -> listener.accept(this.cacheStats));
+    }
+
+    public void addCacheStatsListener(Consumer<Map<String, Object>> listener) {
+        cacheStatsListeners.add(listener);
+    }
+
+    public void removeCacheStatsListener(Consumer<Map<String, Object>> listener) {
+        cacheStatsListeners.remove(listener);
+    }
+
+    // NEUE GETTER und SETTER für die systemDataLoadedForSession Flag
+    public boolean isSystemDataLoadedForSession() {
+        return systemDataLoadedForSession;
+    }
+
+    public void setSystemDataLoadedForSession(boolean systemDataLoadedForSession) {
+        this.systemDataLoadedForSession = systemDataLoadedForSession;
+    }
 }

@@ -26,6 +26,8 @@ import de.jklein.pharmalinkclient.views.actorexplorer.ActorExplorerView;
 import de.jklein.pharmalinkclient.views.dashboard.DashboardView;
 import de.jklein.pharmalinkclient.views.medikamente.MedikamenteView;
 import de.jklein.pharmalinkclient.views.units.UnitsView;
+import de.jklein.pharmalinkclient.service.SystemService;
+import de.jklein.pharmalinkclient.service.StateService;
 
 import java.util.Optional;
 
@@ -33,12 +35,17 @@ public class MainLayout extends AppLayout {
 
     private final AuthService authService;
     private final UserSession userSession;
+    private final SystemService systemService;
+    private final StateService stateService;
     private Tabs menu;
     private Button themeToggleButton;
 
-    public MainLayout(AuthService authService, UserSession userSession) {
+    public MainLayout(AuthService authService, UserSession userSession,
+                      SystemService systemService, StateService stateService) {
         this.authService = authService;
         this.userSession = userSession;
+        this.systemService = systemService;
+        this.stateService = stateService;
 
         setPrimarySection(Section.NAVBAR);
         addToNavbar(false, createTwoRowHeader());
@@ -155,6 +162,10 @@ public class MainLayout extends AppLayout {
                 ui.access(() -> updateTheme(prefersDark));
             });
         }
+
+        if (userSession.isLoggedIn() && !stateService.isSystemDataLoadedForSession()) {
+            fetchAndStoreSystemData(ui);
+        }
     }
 
     private void updateTheme(boolean isDark) {
@@ -164,6 +175,36 @@ public class MainLayout extends AppLayout {
         VaadinIcon icon = isDark ? VaadinIcon.SUN_O : VaadinIcon.MOON;
         themeToggleButton.setIcon(icon.create());
     }
+
+    // Angepasste Methode zum Abrufen und Speichern der Systemdaten
+    private void fetchAndStoreSystemData(UI ui) {
+        systemService.getCurrentActorId()
+                .subscribe(actorId -> { // actorId ist jetzt der reine String
+                    ui.access(() -> {
+                        stateService.setCurrentActorId(actorId); // Setzt die Actor ID im StateService
+                        stateService.setSystemDataLoadedForSession(true);
+                        System.out.println("Aktuelle Actor ID im Frontend (von MainLayout): " + actorId);
+                    });
+                }, error -> {
+                    ui.access(() -> {
+                        System.err.println("Fehler beim Abrufen der aktuellen Actor ID (von MainLayout): " + error.getMessage());
+                        stateService.setSystemDataLoadedForSession(true);
+                    });
+                });
+
+        systemService.getCacheStats()
+                .subscribe(stats -> {
+                    ui.access(() -> {
+                        stateService.setCacheStats(stats);
+                        System.out.println("Cache Statistiken im Frontend (von MainLayout): " + stats);
+                    });
+                }, error -> {
+                    ui.access(() -> {
+                        System.err.println("Fehler beim Abrufen der Cache-Statistiken (von MainLayout): " + error.getMessage());
+                    });
+                });
+    }
+
 
     @Override
     protected void afterNavigation() {

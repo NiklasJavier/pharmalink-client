@@ -90,9 +90,7 @@ public class MasterContent extends Div {
                 .setAutoWidth(true);
 
         grid.addColumn("bezeichnung").setHeader("Bezeichnung").setAutoWidth(true);
-        grid.addColumn("herstellerId").setHeader("Hersteller ID").setHeader("Hersteller-ID").setAutoWidth(true);
         grid.addColumn("medId").setHeader("Medikament ID").setAutoWidth(true);
-        grid.addColumn("ipfsLink").setHeader("IPFS Link").setAutoWidth(true);
 
         add(grid);
 

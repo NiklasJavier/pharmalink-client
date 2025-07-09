@@ -5,6 +5,8 @@
 .project
 .classpath
 
+*.properties
+
 *.iml
 .DS_Store
 

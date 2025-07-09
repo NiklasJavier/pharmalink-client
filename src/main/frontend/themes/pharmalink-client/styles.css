@@ -238,3 +238,21 @@
     margin-top: 0;
     margin-bottom: var(--lumo-space-s);
 }
+
+/* Für die Abrundung der Karten - stellen Sie sicher, dass lumoImports in theme.json korrekt ist */
+.border-radius-l {
+    border-radius: var(--lumo-border-radius-l, 1em); /* Fallback auf 1em, falls Lumo-Variable nicht geladen */
+}
+
+/* Für die schmaleren Statistikfelder */
+.stat-value-field {
+    width: 80px; /* Eine feste, schmale Breite */
+    /* Oder: width: min-content; max-width: 100px; */
+}
+
+/* Optional: Um sicherzustellen, dass Label nicht abgeschnitten wird, wenn Feld sehr schmal ist */
+.stat-value-field label {
+    white-space: normal; /* Erlaubt Zeilenumbruch für lange Labels */
+    word-break: break-word; /* Bricht Wörter um */
+    max-width: 100%; /* Stellt sicher, dass das Label nicht überläuft */
+}
