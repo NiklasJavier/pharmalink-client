@@ -11,7 +11,6 @@ import com.vaadin.flow.component.html.H1;
 import com.vaadin.flow.component.html.Span;
 import com.vaadin.flow.component.icon.Icon;
 import com.vaadin.flow.component.icon.VaadinIcon;
-import com.vaadin.flow.component.menubar.MenuBar;
 import com.vaadin.flow.component.orderedlayout.FlexComponent;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
@@ -67,8 +66,56 @@ public class MainLayout extends AppLayout {
         VerticalLayout headerLayout = new VerticalLayout(topRow, bottomRow);
         headerLayout.setPadding(false);
         headerLayout.setSpacing(false);
+        headerLayout.setWidthFull();
 
         return headerLayout;
+    }
+
+    private Component createRightSideControls() {
+        themeToggleButton = createThemeToggleButton();
+        Component userMenu = createUserMenu();
+
+        HorizontalLayout rightSide = new HorizontalLayout(themeToggleButton, userMenu);
+        rightSide.setAlignItems(FlexComponent.Alignment.CENTER);
+        rightSide.addClassName(LumoUtility.Gap.XSMALL);
+
+        return rightSide;
+    }
+
+    private Button createThemeToggleButton() {
+        Button toggleButton = new Button();
+        toggleButton.addThemeVariants(ButtonVariant.LUMO_TERTIARY);
+        toggleButton.getElement().setAttribute("aria-label", "Toggle theme");
+
+        toggleButton.addClickListener(click -> {
+            boolean isCurrentlyDark = UI.getCurrent().getElement().getThemeList().contains(Lumo.DARK);
+            boolean nowDark = !isCurrentlyDark;
+
+            userSession.setTheme(nowDark ? Lumo.DARK : Lumo.LIGHT);
+            updateTheme(nowDark);
+        });
+        return toggleButton;
+    }
+
+    private Component createUserMenu() {
+        if (userSession.isLoggedIn()) {
+            Button userIconButton = new Button(VaadinIcon.USER.create());
+            userIconButton.addThemeVariants(ButtonVariant.LUMO_TERTIARY, ButtonVariant.LUMO_ICON);
+            userIconButton.getElement().setAttribute("aria-label", "User Menu");
+
+            ContextMenu contextMenu = new ContextMenu();
+            contextMenu.setTarget(userIconButton);
+            contextMenu.setOpenOnClick(true);
+
+            contextMenu.addItem("Angemeldet als: " + userSession.getUsername(), e -> {}).setEnabled(false);
+            contextMenu.addItem("Abmelden", e -> {
+                authService.logout();
+                UI.getCurrent().getPage().reload();
+            });
+
+            return userIconButton;
+        }
+        return new Span();
     }
 
     private Tabs createNavigationTabs() {
@@ -94,83 +141,26 @@ public class MainLayout extends AppLayout {
         return tab;
     }
 
-    private Component createRightSideControls() {
-        // --- Dark-Mode-Schalter ---
-        themeToggleButton = new Button(); // Initialisierung ohne Icon
-        themeToggleButton.addThemeVariants(ButtonVariant.LUMO_TERTIARY);
-        themeToggleButton.getElement().setAttribute("aria-label", "Toggle theme");
-
-        themeToggleButton.addClickListener(click -> {
-            ThemeList themeList = UI.getCurrent().getElement().getThemeList();
-            if (themeList.contains(Lumo.DARK)) {
-                themeList.remove(Lumo.DARK);
-                userSession.setTheme(Lumo.LIGHT);
-                updateThemeToggleButtonIcon(false);
-            } else {
-                themeList.add(Lumo.DARK);
-                userSession.setTheme(Lumo.DARK);
-                updateThemeToggleButtonIcon(true);
-            }
-        });
-
-        Component userMenu = createUserMenu();
-
-        HorizontalLayout rightSide = new HorizontalLayout(themeToggleButton, userMenu);
-        rightSide.setAlignItems(FlexComponent.Alignment.CENTER);
-        rightSide.addClassName(LumoUtility.Gap.XSMALL);
-
-        return rightSide;
-    }
-
-    private Component createUserMenu() {
-        if (userSession.isLoggedIn()) {
-            Button userIconButton = new Button(VaadinIcon.USER.create());
-            userIconButton.addThemeVariants(ButtonVariant.LUMO_TERTIARY, ButtonVariant.LUMO_ICON);
-            userIconButton.getElement().setAttribute("aria-label", "User Menu");
-
-            ContextMenu contextMenu = new ContextMenu();
-            contextMenu.setTarget(userIconButton);
-            contextMenu.setOpenOnClick(true);
-
-            contextMenu.addItem("Angemeldet als: " + userSession.getUsername(), e -> {}).setEnabled(false);
-            contextMenu.addItem("Abmelden", e -> {
-                authService.logout();
-                UI.getCurrent().getPage().reload();
-            });
-
-            return userIconButton;
-        }
-        return new Span();
-    }
-
     @Override
     protected void onAttach(AttachEvent attachEvent) {
         super.onAttach(attachEvent);
-        final UI ui = attachEvent.getUI();
+        UI ui = attachEvent.getUI();
 
         String sessionTheme = userSession.getTheme();
         if (sessionTheme != null) {
-            // Wenn ein Theme in der Session gespeichert ist, wende es an
-            ui.getElement().getThemeList().set(Lumo.DARK, sessionTheme.equals(Lumo.DARK));
-            updateThemeToggleButtonIcon(sessionTheme.equals(Lumo.DARK));
+            updateTheme(sessionTheme.equals(Lumo.DARK));
         } else {
-            // Wenn nichts in der Session ist, frage den Browser nach seiner Voreinstellung
             var js = "return window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches";
             ui.getPage().executeJs(js).then(Boolean.class, prefersDark -> {
-                ui.access(() -> {
-                    if (prefersDark) {
-                        ui.getElement().getThemeList().add(Lumo.DARK);
-                        updateThemeToggleButtonIcon(true);
-                    } else {
-                        ui.getElement().getThemeList().remove(Lumo.DARK);
-                        updateThemeToggleButtonIcon(false);
-                    }
-                });
+                ui.access(() -> updateTheme(prefersDark));
             });
         }
     }
 
-    private void updateThemeToggleButtonIcon(boolean isDark) {
+    private void updateTheme(boolean isDark) {
+        ThemeList themeList = UI.getCurrent().getElement().getThemeList();
+        themeList.set(Lumo.DARK, isDark);
+
         VaadinIcon icon = isDark ? VaadinIcon.SUN_O : VaadinIcon.MOON;
         themeToggleButton.setIcon(icon.create());
     }

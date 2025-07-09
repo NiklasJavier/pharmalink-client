@@ -1,4 +1,4 @@
-package de.jklein.pharmalinkclient.dto.auth;
+package de.jklein.pharmalinkclient.dto;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;

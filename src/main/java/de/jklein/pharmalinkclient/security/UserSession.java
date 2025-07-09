@@ -8,7 +8,7 @@ import java.io.Serializable;
 @SessionScope
 public class UserSession implements Serializable {
 
-    private static final long serialVersionUID = 2L; // Version erhöht
+    private static final long serialVersionUID = 2L; // Version erhöht, da sich die Klasse geändert hat
 
     private String jwt;
     private String username;
@@ -30,6 +30,7 @@ public class UserSession implements Serializable {
         this.username = username;
     }
 
+    // Getter und Setter für das Theme
     public String getTheme() {
         return theme;
     }

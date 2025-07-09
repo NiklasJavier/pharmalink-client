@@ -58,5 +58,183 @@
       --lumo-success-color: hsl(159, 76%, 57%);
       --lumo-success-contrast-color: hsl(159, 29%, 10%);
       --lumo-success-text-color: hsl(159, 61%, 40%);
+      --pharmalink-status-angelegt-color: hsl(45, 100%, 50%);
+
 
     }
+
+
+.pharmalink-view {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+}
+
+.pharmalink-view vaadin-tabs {
+    border-bottom: 1px solid var(--lumo-contrast-10pct);
+    background-color: var(--lumo-tint-5pct);
+}
+
+.pharmalink-view .pharmalink-operation-bar {
+    background-color: var(--lumo-base-color);
+    border-bottom: 1px solid var(--lumo-contrast-10pct);
+    padding: var(--lumo-space-s) var(--lumo-space-m);
+    box-sizing: border-box;
+    width: 100%;
+
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+/* Container für Status-Select und Suchfeld */
+.pharmalink-view .pharmalink-search-sort-area {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    gap: var(--lumo-space-l); /* Abstand zwischen Select und Suchfeld */
+    padding-right: var(--lumo-space-l);
+    padding-top: 0;
+    padding-bottom: 0;
+}
+
+/* Layout für nur das Suchfeld (ohne Button) */
+.pharmalink-view .search-input-layout {
+    display: flex;
+    align-items: center;
+    gap: var(--lumo-space-xs); /* Sehr kleiner Abstand, der jetzt nur vom Suchfeld genutzt wird */
+}
+
+
+/* Stil für das Suchfeld */
+.pharmalink-view .pharmalink-search-sort-area vaadin-text-field {
+    margin-bottom: 0;
+}
+
+/* Stil für die Select-Box */
+.pharmalink-view .pharmalink-search-sort-area vaadin-select {
+    /* Standardmäßig bereits gut vertikal ausgerichtet */
+}
+
+/* Stil für die Menübar */
+.pharmalink-view .pharmalink-operation-bar vaadin-menu-bar {
+    padding: 0;
+    background-color: transparent;
+}
+
+/* Hauptinhalts-Container */
+.pharmalink-view .pharmalink-main-content-container {
+    flex-grow: 1;
+    display: flex;
+    justify-content: center; /* Zentriert Inhalte (SplitLayouts) */
+    align-items: center; /* Zentriert Inhalte vertikal */
+    padding: var(--lumo-space-l); /* Standard-Padding für den Container */
+    border-top: 1px solid var(--lumo-contrast-10pct); /* Trennlinie oben */
+    overflow: auto; /* Wichtig für Scrollbalken bei Inhalten, die größer sind */
+}
+
+/* Stil für das Main-Content innerhalb des Containers */
+.pharmalink-view .pharmalink-main-content-container vaadin-main {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+/* Stil für das horizontale SplitLayout im Eigene-Modus */
+.pharmalink-view .pharmalink-custom-split-layout-horizontal { /* **NEU: Klasse für horizontales Layout** */
+    width: 100%;
+    height: 100%;
+}
+
+/* Stil für das vertikale SplitLayout im Alle-Modus */
+.pharmalink-view .pharmalink-custom-split-layout-vertical { /* **NEU: Klasse für vertikales Layout** */
+    width: 100%;
+    height: 100%;
+}
+
+/* ... (bestehender Code in medikamente-view.css) ... */
+
+/* Stil für Status-Zellen im Grid (angewendet auf das td-Element) */
+.pharmalink-view .master-content vaadin-grid-cell[part="cell"] {
+    /* Allgemeine Stilmerkmale für alle Status-Zellen, falls gewünscht */
+    /* Dies zielt auf das td-Element ab */
+    text-align: center; /* Text zentrieren */
+}
+
+/* Spezifische Farben für die Status-Zellen */
+.pharmalink-view .master-content vaadin-grid-cell[part="cell"].status-cell-freigegeben {
+    background-color: var(--lumo-success-color-10pct); /* Hellgrüner Hintergrund */
+    color: var(--lumo-success-text-color) !important; /* Textfarbe (hellgrün) */
+}
+
+.pharmalink-view .master-content vaadin-grid-cell[part="cell"].status-cell-abgelehnt {
+    background-color: var(--lumo-error-color-10pct); /* Hellroter Hintergrund */
+    color: var(--lumo-error-text-color) !important; /* Textfarbe (hellrot) */
+}
+
+.pharmalink-view .master-content vaadin-grid-cell[part="cell"].status-cell-angelegt {
+    background-color: hsl(45, 100%, 85%); /* Sehr hellgelber Hintergrund */
+    color: hsl(45, 100%, 30%) !important; /* Textfarbe (dunkelgelb/orange) */
+}
+
+.pharmalink-view .master-content vaadin-grid-cell[part="cell"].status-cell-unbekannt {
+    background-color: var(--lumo-contrast-5pct); /* Sehr heller grauer Hintergrund */
+    color: var(--lumo-disabled-text-color) !important; /* Textfarbe (grau) */
+}
+
+/* Falls der Text in der Zelle immer noch nicht die Farbe annimmt, müssen wir den Inhalt selbst ansprechen */
+.pharmalink-view .master-content vaadin-grid-cell[part="cell"].status-cell-freigegeben > div {
+    color: var(--lumo-success-text-color) !important;
+}
+.pharmalink-view .master-content vaadin-grid-cell[part="cell"].status-cell-abgelehnt > div {
+    color: var(--lumo-error-text-color) !important;
+}
+.pharmalink-view .master-content vaadin-grid-cell[part="cell"].status-cell-angelegt > div {
+    color: hsl(45, 100%, 30%) !important;
+}
+.pharmalink-view .master-content vaadin-grid-cell[part="cell"].status-cell-unbekannt > div {
+    color: var(--lumo-disabled-text-color) !important;
+}
+
+/* src/main/frontend/themes/pharmalink-client/views/actor-explorer-view.css */
+
+.actor-explorer-view {
+    /* Bestehende Stile beibehalten */
+    padding: 0;
+    box-sizing: border-box;
+    display: flex;
+    flex-direction: column;
+    position: relative;
+    height: 100%;
+    overflow-y: auto;
+}
+
+.actor-explorer-view .actor-explorer-split-layout {
+    width: 100%;
+    height: 100%;
+}
+
+.actor-explorer-view .actor-master-content {
+    /* Basiseinstellungen von MasterContent.java übernommen */
+    border-right: 1px solid var(--lumo-contrast-10pct); /* Trennlinie zum Detailbereich */
+    overflow-y: auto; /* Scrollbar, falls der Inhalt zu lang wird */
+}
+
+.actor-explorer-view .actor-detail-content {
+    /* Basiseinstellungen von DetailContent.java übernommen */
+    overflow-y: auto; /* Scrollbar, falls der Inhalt zu lang wird */
+}
+
+/* Stil für die IPFS Daten Tabelle */
+.actor-explorer-view .actor-detail-content .ipfs-data-container {
+    margin-top: var(--lumo-space-l);
+    border-top: 1px solid var(--lumo-contrast-10pct);
+    padding-top: var(--lumo-space-m);
+}
+
+.actor-explorer-view .actor-detail-content .ipfs-data-container h3 {
+    margin-top: 0;
+    margin-bottom: var(--lumo-space-s);
+}

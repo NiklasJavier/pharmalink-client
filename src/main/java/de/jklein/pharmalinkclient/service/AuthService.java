@@ -1,8 +1,9 @@
 package de.jklein.pharmalinkclient.service;
 
 import com.vaadin.flow.server.VaadinSession;
+import de.jklein.pharmalinkclient.config.BackendConfig; // **NEU: Import für BackendConfig**
 import de.jklein.pharmalinkclient.dto.auth.LoginRequest;
-import de.jklein.pharmalinkclient.dto.auth.LoginResponse;
+import de.jklein.pharmalinkclient.dto.LoginResponse;
 import de.jklein.pharmalinkclient.security.UserSession;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -22,10 +23,14 @@ public class AuthService {
     private static final Logger log = LoggerFactory.getLogger(AuthService.class);
     private final WebClient webClient;
     private final UserSession userSession;
-    private final String loginUrl = "https://d1.navine.tech/api/v1/auth/login";
+    // private final String loginUrl = "https://d1.navine.tech/api/v1/auth/login"; // **ENTFERNT: Hartcodierte URL**
+    private final BackendConfig backendConfig; // **NEU: Instanz von BackendConfig**
 
-    public AuthService(WebClient.Builder webClientBuilder, UserSession userSession) {
-        this.webClient = webClientBuilder.baseUrl(loginUrl).build();
+    // **GEÄNDERT: Konstruktor injiziert BackendConfig**
+    public AuthService(WebClient.Builder webClientBuilder, UserSession userSession, BackendConfig backendConfig) {
+        this.backendConfig = backendConfig; // BackendConfig injizieren
+        // **GEÄNDERT: baseUrl dynamisch setzen**
+        this.webClient = webClientBuilder.baseUrl(this.backendConfig.getBaseUrl()).build();
         this.userSession = userSession;
     }
 
@@ -39,6 +44,7 @@ public class AuthService {
         CompletableFuture<Optional<String>> future = new CompletableFuture<>();
 
         webClient.post()
+                .uri("/v1/auth/login") // **GEÄNDERT: Relative URI verwenden**
                 .contentType(MediaType.APPLICATION_JSON)
                 .body(Mono.just(loginRequest), LoginRequest.class)
                 .retrieve()
@@ -61,17 +67,14 @@ public class AuthService {
     public void logout() {
         if (VaadinSession.getCurrent() != null) {
             try {
-                // Bereinige die benutzerdefinierte Session
                 userSession.setJwt(null);
                 userSession.setUsername(null);
-                // Entferne den Security Context aus der zugrundeliegenden HttpSession
                 VaadinSession.getCurrent().getSession().removeAttribute(HttpSessionSecurityContextRepository.SPRING_SECURITY_CONTEXT_KEY);
                 log.info("Benutzerdefinierte Session und Security Context aus HttpSession entfernt.");
             } catch (Exception e) {
                 log.error("Fehler beim Bereinigen der Vaadin-Session.", e);
             }
         }
-        // Bereinige den SecurityContext für den aktuellen Thread.
         SecurityContextHolder.clearContext();
         log.info("Benutzer ausgeloggt.");
     }
