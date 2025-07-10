@@ -5,6 +5,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import de.jklein.pharmalinkclient.config.BackendConfig;
 import de.jklein.pharmalinkclient.dto.CreateMedikamentRequestDto;
 import de.jklein.pharmalinkclient.dto.MedikamentResponseDto;
+import de.jklein.pharmalinkclient.dto.UpdateMedikamentRequestDto;
 import de.jklein.pharmalinkclient.security.UserSession;
 import org.springframework.http.*;
 import org.springframework.web.client.RestTemplate;
@@ -108,5 +109,39 @@ public class MedikamentService {
             System.err.println("Allgemeiner Fehler beim Erstellen des Medikaments: " + e.getMessage());
             return null;
         }
+    }
+
+    public MedikamentResponseDto updateMedikament(String medId, UpdateMedikamentRequestDto request) { // KORRIGIERT: Typ des Request-DTO
+        String url = backendConfig.getBaseUrl() + "/v1/medications/" + medId; // PUT Endpunkt
+        HttpEntity<UpdateMedikamentRequestDto> entity = createHttpEntityWithJwtAndBody(request); // KORRIGIERT: Typ des Request-DTO
+
+        // Debug-Ausgabe des Request-Bodies
+        try {
+            ObjectMapper mapper = new ObjectMapper();
+            mapper.enable(com.fasterxml.jackson.databind.SerializationFeature.INDENT_OUTPUT);
+            String jsonOutput = mapper.writeValueAsString(request);
+            System.out.println("----- Ausgehendes JSON für Medikament-Update -----");
+            System.out.println(jsonOutput);
+            System.out.println("--------------------------------------------------");
+        } catch (JsonProcessingException jsonEx) {
+            System.err.println("Fehler beim Umwandeln des DTO in JSON: " + jsonEx.getMessage());
+        }
+
+        try {
+            ResponseEntity<MedikamentResponseDto> response = restTemplate.exchange(
+                    url,
+                    HttpMethod.PUT, // PUT Methode verwenden
+                    entity,
+                    MedikamentResponseDto.class
+            );
+            System.out.println("Medikament mit ID " + medId + " erfolgreich aktualisiert.");
+            return response.getBody();
+        } catch (HttpClientErrorException e) {
+            System.err.println("Fehler beim Aktualisieren des Medikaments mit ID '" + medId + "': " + e.getStatusCode() + " " + e.getResponseBodyAsString());
+            return null;
+        } catch (Exception e) {
+            System.err.println("Allgemeiner Fehler beim Aktualisieren des Medikaments: " + e.getMessage());
+        }
+        return null;
     }
 }

@@ -1,3 +1,4 @@
+// src/main/java/de/jklein/pharmalinkclient/views/medikamente/MasterContent.java
 package de.jklein.pharmalinkclient.views.medikamente;
 
 import com.vaadin.flow.component.Component;
@@ -14,7 +15,7 @@ import de.jklein.pharmalinkclient.service.MedikamentService;
 import de.jklein.pharmalinkclient.service.StateService;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import com.vaadin.flow.data.renderer.LitRenderer; // Wichtig: Import für LitRenderer
+import com.vaadin.flow.data.renderer.LitRenderer;
 
 import java.util.List;
 import java.util.Optional;
@@ -48,9 +49,9 @@ public class MasterContent extends Div {
         grid.addColumn(LitRenderer.<MedikamentResponseDto>of(
                                 "<span style='" +
                                         "display: inline-block; " +
-                                        "padding: 0.3em 0.6em; " + // Lumo Spacing nachempfunden
-                                        "border-radius: 0.2em; " + // Lumo Border Radius nachempfunden
-                                        "font-size: 0.7em; " +    // Lumo Font Size nachempfunden
+                                        "padding: 0.3em 0.6em; " +
+                                        "border-radius: 0.2em; " +
+                                        "font-size: 0.7em; " +
                                         "font-weight: 600; " +
                                         "line-height: 1; " +
                                         "text-transform: uppercase; " +
@@ -58,30 +59,29 @@ public class MasterContent extends Div {
                                         "min-width: 60px; " +
                                         "text-align: center; " +
                                         "white-space: nowrap; " +
-                                        "background-color: ${item.bgColor}; " + // Dynamische Hintergrundfarbe
-                                        "color: ${item.textColor};" +            // Dynamische Textfarbe
+                                        "background-color: ${item.bgColor}; " +
+                                        "color: ${item.textColor};" +
                                         "'>" +
-                                        "${item.status}" + // Der Status-Text
+                                        "${item.status}" +
                                         "</span>")
-                        // Properties für LitRenderer definieren
                         .withProperty("status", MedikamentResponseDto::getStatus)
                         .withProperty("bgColor", MedikamentResponseDto -> {
                             String status = MedikamentResponseDto.getStatus();
-                            if (status == null) return "#A9A9A9"; // Dunkelgrau für unbekannt
+                            if (status == null) return "#A9A9A9";
                             switch (status.toLowerCase()) {
-                                case "freigegeben": return "#D3F8D3"; // Sehr hellgrün
-                                case "abgelehnt": return "#FFD3D3"; // Sehr hellrot
-                                case "erstellt": return "#FFFACD"; // Sehr hellgelb (LemonChiffon)
+                                case "freigegeben": return "#D3F8D3";
+                                case "abgelehnt": return "#FFD3D3";
+                                case "erstellt": return "#FFFACD";
                                 default: return "#A9A9A9";
                             }
                         })
                         .withProperty("textColor", MedikamentResponseDto -> {
                             String status = MedikamentResponseDto.getStatus();
-                            if (status == null) return "#FFFFFF"; // Weiß
+                            if (status == null) return "#FFFFFF";
                             switch (status.toLowerCase()) {
-                                case "freigegeben": return "#006400"; // Dunkelgrün
-                                case "abgelehnt": return "#8B0000"; // Dunkelrot
-                                case "erstellt": return "#B8860B"; // Dunkelgelb/Braun (DarkGoldenrod)
+                                case "freigegeben": return "#006400";
+                                case "abgelehnt": return "#8B0000";
+                                case "erstellt": return "#B8860B";
                                 default: return "#FFFFFF";
                             }
                         }))
@@ -91,6 +91,11 @@ public class MasterContent extends Div {
 
         grid.addColumn("bezeichnung").setHeader("Bezeichnung").setAutoWidth(true);
         grid.addColumn("medId").setHeader("Medikament ID").setAutoWidth(true);
+
+        // NEU (schon drin): Listener für die Auswahl im Grid, um das ausgewählte Medikament im StateService zu setzen
+        grid.asSingleSelect().addValueChangeListener(event -> {
+            stateService.setSelectedMedikament(event.getValue());
+        });
 
         add(grid);
 
@@ -127,5 +132,10 @@ public class MasterContent extends Div {
                     .collect(Collectors.toList());
         }
         grid.setItems(filteredMedikamente);
+        // NEU (schon drin): Sicherstellen, dass nach dem Aktualisieren des Grids das selectedMedikament zurückgesetzt wird,
+        // falls das zuvor ausgewählte Element nicht mehr in der Liste ist.
+        if (!filteredMedikamente.contains(stateService.getSelectedMedikament().orElse(null))) {
+            stateService.clearSelectedMedikament();
+        }
     }
 }
