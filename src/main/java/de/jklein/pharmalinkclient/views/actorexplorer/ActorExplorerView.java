@@ -303,6 +303,7 @@ public class ActorExplorerView extends VerticalLayout {
 
                 ActorUpdateRequestDto updateRequest = new ActorUpdateRequestDto();
                 updateRequest.setName(actorToEdit.getBezeichnung());
+                updateRequest.setEmail(actorToEdit.getEmail()); // E-Mail wird jetzt gesetzt
                 Map<String, Object> updatedIpfsData = editableIpfsData.stream()
                         .filter(entry -> entry.getKey() != null && !entry.getKey().isEmpty())
                         .collect(Collectors.toMap(IpfsEntry::getKey, IpfsEntry::getValue));

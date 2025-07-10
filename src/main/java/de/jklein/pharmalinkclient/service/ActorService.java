@@ -164,8 +164,19 @@ public class ActorService {
     }
 
     public boolean updateActor(String actorId, ActorUpdateRequestDto requestDto) {
-        String url = backendConfig.getBaseUrl() + "/actors/" + actorId;
+        String url = backendConfig.getBaseUrl() + "/v1/actors/" + actorId;
         HttpEntity<ActorUpdateRequestDto> entity = createHttpEntityWithJwtAndBody(requestDto); // Nutzt die neue Methode
+
+        try {
+            com.fasterxml.jackson.databind.ObjectMapper mapper = new com.fasterxml.jackson.databind.ObjectMapper();
+            mapper.enable(com.fasterxml.jackson.databind.SerializationFeature.INDENT_OUTPUT); // Für schöne Formatierung
+            String jsonOutput = mapper.writeValueAsString(requestDto);
+            System.out.println("----- Ausgehendes JSON für Akteur-Update -----");
+            System.out.println(jsonOutput);
+            System.out.println("-------------------------------------------");
+        } catch (com.fasterxml.jackson.core.JsonProcessingException jsonEx) {
+            System.err.println("Fehler beim Umwandeln des DTO in JSON: " + jsonEx.getMessage());
+        }
 
         try {
             restTemplate.exchange(
