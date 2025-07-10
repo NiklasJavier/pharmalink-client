@@ -243,7 +243,8 @@ public class MedikamenteView extends VerticalLayout {
             notification.open();
         };
 
-        menuBar.addItem("Anzeigen", menuListener);
+        // KORRIGIERT: "Anzeigen"-Button entfernt
+        // menuBar.addItem("Anzeigen", menuListener);
 
         String currentActorId = stateService.getCurrentActorId();
         String userRole = null;
@@ -284,7 +285,7 @@ public class MedikamenteView extends VerticalLayout {
                             Notification notification = new Notification(
                                     "Bitte wählen Sie zuerst ein Medikament zum Bearbeiten aus der Liste aus.",
                                     3000,
-                                    Position.MIDDLE // Warnung kann weiterhin mittig sein
+                                    Position.MIDDLE
                             );
                             notification.addThemeVariants(NotificationVariant.LUMO_WARNING);
                             notification.open();
@@ -421,7 +422,7 @@ public class MedikamenteView extends VerticalLayout {
                     Notification notification = new Notification(
                             "Fehler beim Anlegen des Medikaments im Backend.",
                             5000,
-                            Position.MIDDLE // Fehler können weiterhin mittig sein
+                            Position.MIDDLE
                     );
                     notification.addThemeVariants(NotificationVariant.LUMO_ERROR);
                     notification.open();
