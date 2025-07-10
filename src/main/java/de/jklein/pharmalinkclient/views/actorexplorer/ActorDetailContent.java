@@ -1,6 +1,4 @@
 package de.jklein.pharmalinkclient.views.actorexplorer;
-
-import com.vaadin.flow.component.html.Div;
 import com.vaadin.flow.component.html.H3;
 import com.vaadin.flow.component.html.H4;
 import com.vaadin.flow.component.grid.Grid;

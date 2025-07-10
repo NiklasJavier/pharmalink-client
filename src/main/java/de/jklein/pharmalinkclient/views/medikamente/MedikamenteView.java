@@ -1,9 +1,6 @@
 // src/main/java/de/jklein/pharmalinkclient/views/medikamente/MedikamenteView.java
 package de.jklein.pharmalinkclient.views.medikamente;
 
-import com.vaadin.flow.component.Component;
-import com.vaadin.flow.component.html.H2;
-import com.vaadin.flow.component.html.Main;
 import com.vaadin.flow.component.menubar.MenuBar;
 import com.vaadin.flow.component.menubar.MenuBarVariant;
 import com.vaadin.flow.component.contextmenu.MenuItem;

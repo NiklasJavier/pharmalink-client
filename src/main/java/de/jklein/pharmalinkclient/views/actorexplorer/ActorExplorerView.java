@@ -1,6 +1,5 @@
 package de.jklein.pharmalinkclient.views.actorexplorer;
 
-import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.html.Span;
 import com.vaadin.flow.router.PageTitle;
 import com.vaadin.flow.router.Route;
@@ -14,15 +13,12 @@ import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.textfield.TextField;
 import com.vaadin.flow.data.value.ValueChangeMode;
 import com.vaadin.flow.component.icon.VaadinIcon;
-import com.vaadin.flow.component.icon.Icon;
 import com.vaadin.flow.component.orderedlayout.FlexComponent;
 import com.vaadin.flow.component.menubar.MenuBar;
 import com.vaadin.flow.component.menubar.MenuBarVariant;
 import com.vaadin.flow.component.contextmenu.MenuItem;
 import com.vaadin.flow.component.contextmenu.SubMenu;
 import com.vaadin.flow.component.notification.Notification;
-import com.vaadin.flow.component.ClickEvent;
-import com.vaadin.flow.component.ComponentEventListener;
 import com.vaadin.flow.component.dialog.Dialog;
 import com.vaadin.flow.component.formlayout.FormLayout;
 import com.vaadin.flow.component.button.Button;
@@ -43,7 +39,6 @@ import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.Map;
-import java.util.AbstractMap;
 import java.util.List;
 import java.util.stream.Collectors;
 import java.util.Optional;
@@ -51,7 +46,6 @@ import java.util.ArrayList;
 import com.vaadin.flow.component.html.H4;
 import com.vaadin.flow.component.grid.Grid;
 import com.vaadin.flow.component.grid.GridVariant;
-import com.vaadin.flow.theme.lumo.LumoUtility;
 
 @PageTitle("Actor Explorer")
 @Route(value = "actorExplorer", layout = MainLayout.class)
@@ -338,8 +332,8 @@ public class ActorExplorerView extends VerticalLayout {
         rowEditDialog.setHeaderTitle(isNewEntry ? "Neue IPFS Zeile" : "IPFS Zeile bearbeiten");
 
         Binder<IpfsEntry> rowBinder = new Binder<>(IpfsEntry.class);
-        TextField keyField = new TextField("Key Bezeichnung");
-        TextField valueField = new TextField("Key Value Eintrag");
+        TextField keyField = new TextField("Bezeichnung");
+        TextField valueField = new TextField("Eintrag");
         keyField.setWidthFull();
         valueField.setWidthFull();
 

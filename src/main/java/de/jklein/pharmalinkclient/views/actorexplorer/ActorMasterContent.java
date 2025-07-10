@@ -6,20 +6,18 @@ import com.vaadin.flow.component.grid.Grid;
 import com.vaadin.flow.component.grid.GridVariant;
 import com.vaadin.flow.spring.annotation.SpringComponent;
 import com.vaadin.flow.spring.annotation.UIScope;
-import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.FlexComponent;
 
 import de.jklein.pharmalinkclient.dto.ActorResponseDto;
 import de.jklein.pharmalinkclient.dto.ActorFilterCriteriaDto;
 import de.jklein.pharmalinkclient.service.ActorService;
-import de.jklein.pharmalinkclient.service.StateService; // StateService ist bereits injiziert und wird hier genutzt
+import de.jklein.pharmalinkclient.service.StateService;
 
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.List;
 import java.util.Optional;
-import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
 

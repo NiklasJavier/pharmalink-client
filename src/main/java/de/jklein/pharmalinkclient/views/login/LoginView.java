@@ -1,6 +1,5 @@
 package de.jklein.pharmalinkclient.views.login;
 
-import com.vaadin.flow.component.UI;
 import com.vaadin.flow.component.login.LoginOverlay;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.router.BeforeEnterEvent;
