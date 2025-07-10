@@ -169,9 +169,15 @@ public class DashboardView extends Main {
         stateService.addCurrentActorIdListener(actorIdListener);
 
         cacheStatsListener = stats -> UI.getCurrent().access(() -> {
-            actorCountField.setValue(stats.getOrDefault("actorCount", "N/A").toString());
-            medikamentCountField.setValue(stats.getOrDefault("medikamentCount", "N/A").toString());
-            myUnitsCountField.setValue(stats.getOrDefault("myUnitsCount", "N/A").toString());
+            if (stats != null) { // Add this null check
+                actorCountField.setValue(stats.getOrDefault("actorCount", "N/A").toString());
+                medikamentCountField.setValue(stats.getOrDefault("medikamentCount", "N/A").toString());
+                myUnitsCountField.setValue(stats.getOrDefault("myUnitsCount", "N/A").toString());
+            } else {
+                actorCountField.setValue("N/A");
+                medikamentCountField.setValue("N/A");
+                myUnitsCountField.setValue("N/A");
+            }
         });
         stateService.addCacheStatsListener(cacheStatsListener);
 
