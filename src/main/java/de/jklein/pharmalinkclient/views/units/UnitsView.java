@@ -7,7 +7,6 @@ import com.vaadin.flow.component.dialog.Dialog;
 import com.vaadin.flow.component.formlayout.FormLayout;
 import com.vaadin.flow.component.grid.GridVariant;
 import com.vaadin.flow.component.html.Div;
-import com.vaadin.flow.component.html.H2;
 import com.vaadin.flow.component.html.H4;
 import com.vaadin.flow.component.html.Span;
 import com.vaadin.flow.component.icon.VaadinIcon;
@@ -46,16 +45,13 @@ import java.util.stream.Collectors;
 @PermitAll
 public class UnitsView extends VerticalLayout {
 
-    // --- Services ---
     private final UnitService unitService;
     private final MedikamentService medikamentService;
     private final ActorService actorService;
 
-    // --- UI Panels ---
     private final VerticalLayout myUnitsPanel;
     private final VerticalLayout globalUnitsPanel;
 
-    // --- UI-Komponenten ---
     private final TreeGrid<TreeItem> myUnitsTreeGrid = new TreeGrid<>();
     private final TreeGrid<TreeItem> globalUnitsTreeGrid = new TreeGrid<>();
     private final ComboBox<MedikamentResponseDto> globalMedBezeichnungComboBox = new ComboBox<>("Nach Bezeichnung");
@@ -63,7 +59,6 @@ public class UnitsView extends VerticalLayout {
     private final TextField globalUnitIdSearchField = new TextField("Nach Unit ID");
     private final Span notFoundMessage = new Span("Die Suche ergab kein Ergebnis.");
 
-    // --- Daten-Cache ---
     private List<MedikamentResponseDto> allMedikamente;
     private List<UnitResponseDto> myUnits;
 
@@ -220,9 +215,7 @@ public class UnitsView extends VerticalLayout {
         medSelector.getStyle().set("--vaadin-combo-box-overlay-width", "750px");
 
         chargeSelector.setEnabled(false);
-
-        // --- KORREKTUR ---
-        // Hier wird nun ein leerer String übergeben, wie es der Service erwartet
+        
         ownerSelector.setItems(actorService.searchActors("", "", ""));
         ownerSelector.setItemLabelGenerator(a -> String.format("%s (%s) - ID: %s", a.getBezeichnung(), a.getRole(), a.getActorId()));
         ownerSelector.getStyle().set("--vaadin-combo-box-overlay-width", "750px");

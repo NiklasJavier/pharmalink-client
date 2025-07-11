@@ -1,4 +1,3 @@
-// src/main/java/de/jklein/pharmalinkclient/views/medikamente/UnitInformationContent.java
 package de.jklein.pharmalinkclient.views.medikamente;
 
 import com.vaadin.flow.component.html.Div;
@@ -9,7 +8,6 @@ import com.vaadin.flow.component.grid.ColumnTextAlign;
 import com.vaadin.flow.spring.annotation.SpringComponent;
 import com.vaadin.flow.spring.annotation.UIScope;
 import de.jklein.pharmalinkclient.dto.MedikamentResponseDto;
-import de.jklein.pharmalinkclient.dto.UnitResponseDto; // Beibehalten, da es im Wert der Map verwendet wird
 import de.jklein.pharmalinkclient.service.StateService;
 import de.jklein.pharmalinkclient.service.UnitService;
 import de.jklein.pharmalinkclient.dto.ChargeSummaryDto;
@@ -17,8 +15,8 @@ import de.jklein.pharmalinkclient.dto.ChargeSummaryDto;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
-import java.util.Map; // Import für Map
-import java.util.stream.Collectors; // Beibehalten für Stream-Operationen
+import java.util.Map;
+import java.util.stream.Collectors;
 
 @SpringComponent
 @UIScope
@@ -60,19 +58,15 @@ public class UnitInformationContent extends Div {
     }
 
     private void updateUnitGrid(Optional<MedikamentResponseDto> selectedMedikamentOptional) {
-        // Die folgende Zeile wurde entfernt, da 'currentIpfsEntries' in dieser Klasse nicht existiert.
-        // currentIpfsEntries.clear();
-
         if (selectedMedikamentOptional.isPresent()) {
             MedikamentResponseDto medikament = selectedMedikamentOptional.get();
             String medId = medikament.getMedId();
 
             if (medId != null && !medId.isEmpty()) {
-                // Aufruf der Methode getChargeCountsForMedication aus UnitService
                 Map<String, Integer> chargeCountsMap = unitService.getChargeCountsForMedication(medId);
 
                 List<ChargeSummaryDto> chargeSummaries = chargeCountsMap.entrySet().stream()
-                        .map(entry -> new ChargeSummaryDto(entry.getKey(), entry.getValue())) // Erstellt ChargeSummaryDto aus Map-Einträgen
+                        .map(entry -> new ChargeSummaryDto(entry.getKey(), entry.getValue()))
                         .collect(Collectors.toList());
 
                 unitGrid.setItems(chargeSummaries);

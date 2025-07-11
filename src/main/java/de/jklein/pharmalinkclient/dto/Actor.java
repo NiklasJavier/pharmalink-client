@@ -1,16 +1,15 @@
-package de.jklein.pharmalinkclient.dto; // Oder ein passenderer Unterordner wie .dto.system.model
+package de.jklein.pharmalinkclient.dto;
 
 import java.util.Map;
 
 public class Actor {
     private String actorId;
     private String bezeichnung;
-    private String role; // Aus OpenAPI, entspricht 'role' aus ActorResponseDto
+    private String role;
     private String email;
     private String ipfsLink;
-    private String docType; // Nur in SystemStateDto -> Actor
+    private String docType;
     private Map<String, Object> ipfsData;
-    // private String rolle; // Laut OpenAPI nur 'role', 'rolle' war in ActorResponseDto, prüfen ob es ein Duplikat ist.
 
     public Actor() {}
 

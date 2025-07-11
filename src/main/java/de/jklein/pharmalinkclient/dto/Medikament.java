@@ -1,4 +1,4 @@
-package de.jklein.pharmalinkclient.dto; // Oder ein passenderer Unterordner wie .dto.system.model
+package de.jklein.pharmalinkclient.dto;
 
 import java.util.Map;
 
@@ -6,12 +6,12 @@ public class Medikament {
     private String medId;
     private String herstellerId;
     private String bezeichnung;
-    private String infoblattHash; // Nur in SystemStateDto -> Medikament
+    private String infoblattHash;
     private String ipfsLink;
     private String status;
-    private String approvedById; // Nur in SystemStateDto -> Medikament
-    private Map<String, String> tags; // Nur in SystemStateDto -> Medikament
-    private String docType; // Nur in SystemStateDto -> Medikament
+    private String approvedById;
+    private Map<String, String> tags;
+    private String docType;
     private Map<String, Object> ipfsData;
 
     public Medikament() {}

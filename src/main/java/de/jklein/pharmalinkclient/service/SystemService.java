@@ -4,14 +4,11 @@ import com.vaadin.flow.spring.annotation.SpringComponent;
 import com.vaadin.flow.spring.annotation.VaadinSessionScope;
 import de.jklein.pharmalinkclient.config.BackendConfig;
 import de.jklein.pharmalinkclient.dto.ActorIdResponse;
-import de.jklein.pharmalinkclient.dto.SystemStatsDto; // NEU: Import
-import de.jklein.pharmalinkclient.dto.SystemStateDto; // NEU: Import
+import de.jklein.pharmalinkclient.dto.SystemStatsDto;
+import de.jklein.pharmalinkclient.dto.SystemStateDto;
 import de.jklein.pharmalinkclient.security.UserSession;
 import org.springframework.web.reactive.function.client.WebClient;
 import reactor.core.publisher.Mono;
-import org.springframework.core.ParameterizedTypeReference; // Beibehalten für generische Typen, falls nötig
-
-import java.util.Map; // Beibehalten für allgemeine Map-Typen, falls nötig
 
 @SpringComponent
 @VaadinSessionScope
@@ -27,13 +24,9 @@ public class SystemService {
         this.userSession = userSession;
     }
 
-    /**
-     * Ruft die ID des aktuell im Backend registrierten Akteurs ab.
-     * Entspricht GET /api/system/current-actor-id (getCurrentActorId)
-     */
     public Mono<String> getCurrentActorId() {
         return webClient.get()
-                .uri("/system/current-actor-id") // Korrigierter URI-Pfad
+                .uri("/system/current-actor-id")
                 .headers(headers -> {
                     String jwt = userSession.getJwt();
                     if (jwt != null && !jwt.isEmpty()) {
@@ -47,13 +40,9 @@ public class SystemService {
                 .map(ActorIdResponse::getActorId);
     }
 
-    /**
-     * Ruft eine schnelle Zusammenfassung der im In-Memory-Cache gehaltenen Elemente ab.
-     * Entspricht GET /api/system/cache/stats (getCacheStats)
-     */
-    public Mono<SystemStatsDto> getCacheStats() { // GEÄNDERT: Rückgabetyp zu SystemStatsDto
+    public Mono<SystemStatsDto> getCacheStats() {
         return webClient.get()
-                .uri("/system/cache/stats") // Korrigierter URI-Pfad
+                .uri("/system/cache/stats")
                 .headers(headers -> {
                     String jwt = userSession.getJwt();
                     if (jwt != null && !jwt.isEmpty()) {
@@ -63,16 +52,12 @@ public class SystemService {
                     }
                 })
                 .retrieve()
-                .bodyToMono(SystemStatsDto.class); // GEÄNDERT: Deserialisierung zu SystemStatsDto.class
+                .bodyToMono(SystemStatsDto.class);
     }
 
-    /**
-     * Ruft den vollständigen aktuellen In-Memory-Zustand des Anwendungscaches ab.
-     * Entspricht GET /api/system/cache/state (getCacheState)
-     */
-    public Mono<SystemStateDto> getCacheState() { // NEU: Methode hinzugefügt
+    public Mono<SystemStateDto> getCacheState() {
         return webClient.get()
-                .uri("/system/cache/state") // Korrigierter URI-Pfad
+                .uri("/system/cache/state")
                 .headers(headers -> {
                     String jwt = userSession.getJwt();
                     if (jwt != null && !jwt.isEmpty()) {
@@ -82,6 +67,6 @@ public class SystemService {
                     }
                 })
                 .retrieve()
-                .bodyToMono(SystemStateDto.class); // Deserialisierung zu SystemStateDto.class
+                .bodyToMono(SystemStateDto.class); 
     }
 }

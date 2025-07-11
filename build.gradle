@@ -23,6 +23,7 @@ dependencyManagement {
 
 dependencies {
     implementation 'com.vaadin:vaadin'
+    implementation("org.projectlombok:lombok:1.18.38")
     implementation 'com.vaadin:vaadin-spring-boot-starter'
     implementation 'org.parttio:line-awesome:2.1.0'
     implementation 'com.google.zxing:core:3.5.3'

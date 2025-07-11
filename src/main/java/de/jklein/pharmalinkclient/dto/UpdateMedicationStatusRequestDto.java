@@ -1,4 +1,4 @@
-package de.jklein.pharmalinkclient.dto; // Oder ein passenderer Unterordner wie .dto.medikament
+package de.jklein.pharmalinkclient.dto; 
 
 import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.NotBlank;

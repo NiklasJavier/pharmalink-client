@@ -1,6 +1,5 @@
 package de.jklein.pharmalinkclient.service;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import de.jklein.pharmalinkclient.config.BackendConfig;
 import de.jklein.pharmalinkclient.dto.CreateMedikamentRequestDto;
@@ -16,20 +15,18 @@ import org.springframework.web.util.UriComponentsBuilder;
 
 import com.vaadin.flow.spring.annotation.SpringComponent;
 import com.vaadin.flow.spring.annotation.UIScope;
-import org.slf4j.Logger; // NEU: Import für Logger
-import org.slf4j.LoggerFactory; // NEU: Import für LoggerFactory
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
-import java.util.stream.Collectors;
-
 
 @SpringComponent
 @UIScope
 public class MedikamentService {
 
-    private static final Logger log = LoggerFactory.getLogger(MedikamentService.class); // NEU: Logger-Instanz
+    private static final Logger log = LoggerFactory.getLogger(MedikamentService.class);
 
     private final RestTemplate restTemplate;
     private final BackendConfig backendConfig;
@@ -47,7 +44,7 @@ public class MedikamentService {
         if (jwt != null && !jwt.isEmpty()) {
             headers.setBearerAuth(jwt);
         } else {
-            log.warn("Kein JWT-Token in der UserSession verfügbar. Authentifizierung erforderlich."); // GEÄNDERT: zu log.warn
+            log.warn("Kein JWT-Token in der UserSession verfügbar. Authentifizierung erforderlich.");
             return new HttpEntity<>(headers);
         }
         return new HttpEntity<>(headers);
@@ -60,15 +57,11 @@ public class MedikamentService {
         if (jwt != null && !jwt.isEmpty()) {
             headers.setBearerAuth(jwt);
         } else {
-            log.warn("Kein JWT-Token in der UserSession verfügbar. Authentifizierung erforderlich."); // GEÄNDERT: zu log.warn
+            log.warn("Kein JWT-Token in der UserSession verfügbar. Authentifizierung erforderlich.");
         }
         return new HttpEntity<>(body, headers);
     }
 
-    /**
-     * Sucht nach Medikamenten anhand verschiedener Kriterien.
-     * Entspricht GET /api/v1/search/medikamente (searchMedikamente)
-     */
     public List<MedikamentResponseDto> searchMedikamente(MedikamentFilterCriteriaDto criteria) {
         UriComponentsBuilder uriBuilder = UriComponentsBuilder.fromHttpUrl(backendConfig.getBaseUrl() + "/v1/search/medikamente");
 
@@ -78,16 +71,12 @@ public class MedikamentService {
         if (criteria.getStatusFilter() != null && !criteria.getStatusFilter().isEmpty() && !criteria.getStatusFilter().equals("Ohne Filter")) {
             uriBuilder.queryParam("status", criteria.getStatusFilter());
         }
-        // Annahme: Wenn tags in MedikamentFilterCriteriaDto vorhanden wären, würden sie hier hinzugefügt
-        // if (criteria.getTags() != null && !criteria.getTags().isEmpty()) {
-        //     uriBuilder.queryParam("tags", String.join(",", criteria.getTags()));
-        // }
         if (criteria.isFilterByCurrentActor()) {
             uriBuilder.queryParam("ownedByMe", true);
         }
 
         String url = uriBuilder.toUriString();
-        log.info("Sende GET-Anfrage für Medikamente an URL: {}", url); // NEU: Log der URL
+        log.info("Sende GET-Anfrage für Medikamente an URL: {}", url);
         HttpEntity<String> entity = createHttpEntityWithJwt();
 
         try {
@@ -99,21 +88,17 @@ public class MedikamentService {
             );
             if (response.getBody() != null) {
                 List<MedikamentResponseDto> result = Arrays.asList(response.getBody());
-                log.info("Erfolgreich {} Medikamenten-Einträge erhalten.", result.size()); // NEU: Log der Anzahl
+                log.info("Erfolgreich {} Medikamenten-Einträge erhalten.", result.size());
                 return result;
             }
         } catch (HttpClientErrorException e) {
-            log.error("Fehler beim Suchen/Filtern der Medikamente: {} {}", e.getStatusCode(), e.getResponseBodyAsString(), e); // GEÄNDERT: zu log.error mit Stacktrace
+            log.error("Fehler beim Suchen/Filtern der Medikamente: {} {}", e.getStatusCode(), e.getResponseBodyAsString(), e);
         } catch (Exception e) {
-            log.error("Allgemeiner Fehler beim Suchen/Filtern der Medikamente: {}", e.getMessage(), e); // GEÄNDERT: zu log.error mit Stacktrace
+            log.error("Allgemeiner Fehler beim Suchen/Filtern der Medikamente: {}", e.getMessage(), e);
         }
         return Collections.emptyList();
     }
 
-    /**
-     * Ruft ein einzelnes Medikament anhand seiner ID ab.
-     * Entspricht GET /api/v1/medications/{medId} (getMedicationById)
-     */
     public MedikamentResponseDto getMedikamentById(String medId) {
         String url = backendConfig.getBaseUrl() + "/v1/medications/" + medId;
         log.info("Sende GET-Anfrage für Medikament ID {} an URL: {}", medId, url);
@@ -136,10 +121,6 @@ public class MedikamentService {
         return null;
     }
 
-    /**
-     * Erstellt ein neues Medikament.
-     * Entspricht POST /api/v1/medications (createMedikament)
-     */
     public MedikamentResponseDto createMedikament(CreateMedikamentRequestDto request) {
         String url = backendConfig.getBaseUrl() + "/v1/medications";
         log.info("Sende POST-Anfrage zum Erstellen eines Medikaments an URL: {}", url);
@@ -149,7 +130,7 @@ public class MedikamentService {
             ObjectMapper mapper = new ObjectMapper();
             mapper.enable(com.fasterxml.jackson.databind.SerializationFeature.INDENT_OUTPUT);
             String jsonOutput = mapper.writeValueAsString(request);
-            log.debug("----- Ausgehendes JSON für Medikament-Erstellung -----\n{}\n--------------------------------------------------", jsonOutput); // GEÄNDERT: zu log.debug
+            log.debug("----- Ausgehendes JSON für Medikament-Erstellung -----\n{}\n--------------------------------------------------", jsonOutput);
 
             ResponseEntity<MedikamentResponseDto> response = restTemplate.exchange(
                     url,
@@ -168,10 +149,6 @@ public class MedikamentService {
         }
     }
 
-    /**
-     * Aktualisiert ein bestehendes Medikament.
-     * Entspricht PUT /api/v1/medications/{medId} (updateMedication)
-     */
     public MedikamentResponseDto updateMedikament(String medId, UpdateMedikamentRequestDto request) {
         String url = backendConfig.getBaseUrl() + "/v1/medications/" + medId;
         log.info("Sende PUT-Anfrage zum Aktualisieren von Medikament ID {} an URL: {}", medId, url);
@@ -181,7 +158,7 @@ public class MedikamentService {
             ObjectMapper mapper = new ObjectMapper();
             mapper.enable(com.fasterxml.jackson.databind.SerializationFeature.INDENT_OUTPUT);
             String jsonOutput = mapper.writeValueAsString(request);
-            log.debug("----- Ausgehendes JSON für Medikament-Update -----\n{}\n--------------------------------------------------", jsonOutput); // GEÄNDERT: zu log.debug
+            log.debug("----- Ausgehendes JSON für Medikament-Update -----\n{}\n--------------------------------------------------", jsonOutput);
 
             ResponseEntity<MedikamentResponseDto> response = restTemplate.exchange(
                     url,
@@ -200,10 +177,6 @@ public class MedikamentService {
         return null;
     }
 
-    /**
-     * Genehmigt oder lehnt ein Medikament ab.
-     * Entspricht POST /api/v1/medications/{medId}/approval (approveMedication)
-     */
     public boolean approveMedication(String medId, UpdateMedicationStatusRequestDto request) {
         String url = backendConfig.getBaseUrl() + "/v1/medications/" + medId + "/approval";
         log.info("Sende POST-Anfrage zum Genehmigen/Ablehnen von Medikament ID {} an URL: {}", medId, url);
@@ -227,10 +200,6 @@ public class MedikamentService {
         }
     }
 
-    /**
-     * Löscht ein Medikament bedingt, wenn keine Einheiten damit verbunden sind.
-     * Entspricht DELETE /api/v1/medications/{medId}/conditional-delete (deleteMedikamentIfNoUnits)
-     */
     public boolean deleteMedikamentIfNoUnits(String medId) {
         String url = backendConfig.getBaseUrl() + "/v1/medications/" + medId + "/conditional-delete";
         log.info("Sende DELETE-Anfrage zum bedingten Löschen von Medikament ID {} an URL: {}", medId, url);

@@ -1,4 +1,3 @@
-// MedikamenteView.java
 package de.jklein.pharmalinkclient.views.medikamente;
 
 import com.vaadin.flow.component.menubar.MenuBar;
@@ -16,8 +15,6 @@ import jakarta.annotation.security.PermitAll;
 import com.vaadin.flow.component.notification.Notification;
 import com.vaadin.flow.component.notification.NotificationVariant;
 import com.vaadin.flow.component.notification.Notification.Position;
-import com.vaadin.flow.component.ClickEvent;
-import com.vaadin.flow.component.ComponentEventListener;
 import com.vaadin.flow.component.orderedlayout.FlexComponent;
 import com.vaadin.flow.component.textfield.TextField;
 import com.vaadin.flow.component.tabs.Tab;
@@ -56,7 +53,6 @@ import com.vaadin.flow.component.UI;
 
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -470,11 +466,6 @@ public class MedikamenteView extends VerticalLayout {
         confirmationDialog.open();
     }
 
-
-    /**
-     * Shows a popup with detailed information about a selected Medikament.
-     * This method is public so it can be called from MasterContent.
-     */
     public void showMedikamentDetailsPopup(MedikamentResponseDto medikament) {
         if (medikament == null) {
             Notification.show("Kein Medikament ausgewählt.", 3000, Position.MIDDLE).addThemeVariants(NotificationVariant.LUMO_WARNING);
@@ -493,7 +484,6 @@ public class MedikamenteView extends VerticalLayout {
         dialogLayout.setPadding(true);
         dialogLayout.setSizeFull();
 
-        // Basic Info Form
         FormLayout infoForm = new FormLayout();
         infoForm.setResponsiveSteps(new FormLayout.ResponsiveStep("0", 1),
                 new FormLayout.ResponsiveStep("400px", 2));
@@ -506,7 +496,6 @@ public class MedikamenteView extends VerticalLayout {
 
         dialogLayout.add(infoForm);
 
-        // IPFS Data Section (similar to create/edit popup)
         H4 ipfsHeader = new H4("Zusätzliche IPFS Daten");
         dialogLayout.add(ipfsHeader);
 
@@ -525,7 +514,6 @@ public class MedikamenteView extends VerticalLayout {
         ipfsDisplayGrid.setItems(ipfsEntries);
         dialogLayout.add(ipfsDisplayGrid);
 
-        // Close button
         Button closeButton = new Button("Schließen", event -> dialog.close());
         closeButton.addThemeVariants(ButtonVariant.LUMO_TERTIARY);
         dialog.getFooter().add(closeButton);
@@ -534,10 +522,6 @@ public class MedikamenteView extends VerticalLayout {
         dialog.open();
     }
 
-
-    /**
-     * Zeigt ein Popup zur Erstellung eines neuen Medikaments an.
-     */
     private void showCreateMedikamentPopup() {
         Dialog dialog = new Dialog();
         dialog.setHeaderTitle("Neues Medikament anlegen");
@@ -558,7 +542,6 @@ public class MedikamenteView extends VerticalLayout {
         rightSide.setSpacing(true);
         rightSide.setPadding(true);
 
-        // --- Linke Seite: Hauptdetails Formular ---
         CreateMedikamentRequestDto newMedikament = new CreateMedikamentRequestDto();
         Binder<CreateMedikamentRequestDto> binder = new Binder<>(CreateMedikamentRequestDto.class);
 
@@ -571,7 +554,6 @@ public class MedikamenteView extends VerticalLayout {
         detailsForm.add(bezeichnungField, infoblattHashField);
         leftSide.add(detailsForm);
 
-        // Bind Felder mit Validierung
         binder.forField(bezeichnungField)
                 .asRequired("Bezeichnung ist erforderlich")
                 .bind(CreateMedikamentRequestDto::getBezeichnung, CreateMedikamentRequestDto::setBezeichnung);
@@ -580,8 +562,6 @@ public class MedikamenteView extends VerticalLayout {
 
         binder.setBean(newMedikament);
 
-
-        // --- Rechte Seite: IPFS Daten Grid ---
         Grid<IpfsEntry> ipfsEditGrid = new Grid<>(IpfsEntry.class, false);
         ipfsEditGrid.addThemeVariants(GridVariant.LUMO_COMPACT, GridVariant.LUMO_ROW_STRIPES);
         ipfsEditGrid.setHeight("200px");
@@ -596,7 +576,6 @@ public class MedikamenteView extends VerticalLayout {
         GridContextMenu<IpfsEntry> contextMenu = ipfsEditGrid.addContextMenu();
         contextMenu.addItem("Zeile bearbeiten", event -> event.getItem().ifPresent(item -> showIpfsEntryRowEditDialog(item, ipfsDataProvider)));
 
-        // --- Buttons unter dem Grid ---
         Button addRowButton = new Button("Zeile hinzufügen", VaadinIcon.PLUS.create());
         addRowButton.addThemeVariants(ButtonVariant.LUMO_TERTIARY_INLINE);
         addRowButton.addClickListener(e -> showIpfsEntryRowEditDialog(new IpfsEntry("", ""), ipfsDataProvider));
@@ -626,7 +605,6 @@ public class MedikamenteView extends VerticalLayout {
         splitLayout.addToSecondary(rightSide);
         dialog.add(splitLayout);
 
-        // --- Dialog-Footer mit Buttons ---
         Button saveButton = new Button("Speichern");
         saveButton.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
         saveButton.addClickListener(e -> {
@@ -689,10 +667,6 @@ public class MedikamenteView extends VerticalLayout {
         dialog.open();
     }
 
-    /**
-     * Zeigt ein Popup zur Bearbeitung eines bestehenden Medikaments an.
-     * @param medikamentToEdit Das Medikament, das bearbeitet werden soll.
-     */
     private void showEditMedikamentPopup(MedikamentResponseDto medikamentToEdit) {
         Dialog dialog = new Dialog();
         dialog.setHeaderTitle("Medikament bearbeiten: " + medikamentToEdit.getBezeichnung());
@@ -713,7 +687,6 @@ public class MedikamenteView extends VerticalLayout {
         rightSide.setSpacing(true);
         rightSide.setPadding(true);
 
-        // --- Linke Seite: Hauptdetails Formular ---
         UpdateMedikamentRequestDto updateRequestDto = new UpdateMedikamentRequestDto();
         updateRequestDto.setBezeichnung(medikamentToEdit.getBezeichnung());
         updateRequestDto.setIpfsData(medikamentToEdit.getIpfsData());
@@ -724,20 +697,16 @@ public class MedikamenteView extends VerticalLayout {
         FormLayout detailsForm = new FormLayout();
         detailsForm.setResponsiveSteps(new FormLayout.ResponsiveStep("0", 1));
 
-        // MedID anzeigen (schreibgeschützt und oben)
         TextField medIdField = createReadOnlyTextField("Medikament ID", medikamentToEdit.getMedId());
-        // Hersteller ID und Status ebenfalls als ReadOnly anzeigen
         TextField herstellerIdDisplayField = createReadOnlyTextField("Hersteller ID", medikamentToEdit.getHerstellerId());
         TextField statusDisplayField = createReadOnlyTextField("Status", medikamentToEdit.getStatus());
 
         TextField bezeichnungField = new TextField("Bezeichnung");
         TextField infoblattHashField = new TextField("Infoblatt Hash (optional)");
 
-        // Elemente der linken Seite hinzufügen: Zuerst ReadOnly-Felder, dann das Formular
         leftSide.add(medIdField, herstellerIdDisplayField, statusDisplayField, detailsForm);
         detailsForm.add(bezeichnungField, infoblattHashField);
 
-        // Bind Felder mit Validierung
         binder.forField(bezeichnungField)
                 .asRequired("Bezeichnung ist erforderlich")
                 .bind(UpdateMedikamentRequestDto::getBezeichnung, UpdateMedikamentRequestDto::setBezeichnung);
@@ -747,7 +716,6 @@ public class MedikamenteView extends VerticalLayout {
         binder.setBean(updateRequestDto);
 
 
-        // --- Rechte Seite: IPFS Daten Grid ---
         Grid<IpfsEntry> ipfsEditGrid = new Grid<>(IpfsEntry.class, false);
         ipfsEditGrid.addThemeVariants(GridVariant.LUMO_COMPACT, GridVariant.LUMO_ROW_STRIPES);
         ipfsEditGrid.setHeight("200px");
@@ -765,7 +733,6 @@ public class MedikamenteView extends VerticalLayout {
         GridContextMenu<IpfsEntry> contextMenu = ipfsEditGrid.addContextMenu();
         contextMenu.addItem("Zeile bearbeiten", event -> event.getItem().ifPresent(item -> showIpfsEntryRowEditDialog(item, ipfsDataProvider)));
 
-        // --- Buttons unter dem Grid ---
         Button addRowButton = new Button("Zeile hinzufügen", VaadinIcon.PLUS.create());
         addRowButton.addThemeVariants(ButtonVariant.LUMO_TERTIARY_INLINE);
         addRowButton.addClickListener(e -> showIpfsEntryRowEditDialog(new IpfsEntry("", ""), ipfsDataProvider));
@@ -795,7 +762,6 @@ public class MedikamenteView extends VerticalLayout {
         splitLayout.addToSecondary(rightSide);
         dialog.add(splitLayout);
 
-        // --- Dialog-Footer mit Buttons ---
         Button saveButton = new Button("Speichern");
         saveButton.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
         saveButton.addClickListener(e -> {

@@ -1,4 +1,4 @@
-package de.jklein.pharmalinkclient.dto; // Oder ein passenderer Unterordner wie .dto.system.model
+package de.jklein.pharmalinkclient.dto; 
 
 import java.time.LocalDateTime;
 import java.util.Map;
@@ -7,13 +7,13 @@ public class Unit {
     private String unitId;
     private String medId;
     private String chargeBezeichnung;
-    private String ownerId; // Nur in SystemStateDto -> Unit
+    private String ownerId;
     private String currentOwnerId;
     private String ipfsLink;
-    private String status; // Nur in SystemStateDto -> Unit
-    private LocalDateTime createdAt; // Nur in SystemStateDto -> Unit
-    private String createdById; // Nur in SystemStateDto -> Unit
-    private String docType; // Nur in SystemStateDto -> Unit
+    private String status;
+    private LocalDateTime createdAt;
+    private String createdById;
+    private String docType;
     private Map<String, Object> ipfsData;
 
     public Unit() {}

@@ -1,5 +1,4 @@
-package de.jklein.pharmalinkclient.dto; // Oder ein passenderer Unterordner wie .dto.system
-
+package de.jklein.pharmalinkclient.dto; 
 public class SystemStatsDto {
     private int actorCount;
     private int medikamentCount;

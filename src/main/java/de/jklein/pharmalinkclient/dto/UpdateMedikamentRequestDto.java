@@ -1,4 +1,3 @@
-// src/main/java/de/jklein/pharmalink/api/dto/UpdateMedikamentRequestDto.java
 package de.jklein.pharmalinkclient.dto;
 
 import java.util.Map;
@@ -17,8 +16,7 @@ public class UpdateMedikamentRequestDto {
         this.infoblattHash = infoblattHash;
         this.ipfsData = ipfsData;
     }
-
-    // Getter und Setter
+    
     public String getBezeichnung() {
         return bezeichnung;
     }

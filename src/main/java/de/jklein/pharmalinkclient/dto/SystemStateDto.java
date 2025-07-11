@@ -1,4 +1,4 @@
-package de.jklein.pharmalinkclient.dto; // Oder ein passenderer Unterordner wie .dto.system
+package de.jklein.pharmalinkclient.dto;
 
 import java.util.List;
 
@@ -7,9 +7,9 @@ public class SystemStateDto {
     private int actorCount;
     private int medikamentCount;
     private int myUnitsCount;
-    private List<Actor> allActors; // Verwendet das oben definierte Actor DTO
-    private List<Medikament> allMedikamente; // Verwendet das oben definierte Medikament DTO
-    private List<Unit> myUnits; // Verwendet das oben definierte Unit DTO
+    private List<Actor> allActors;
+    private List<Medikament> allMedikamente;
+    private List<Unit> myUnits;
 
     public SystemStateDto() {
     }

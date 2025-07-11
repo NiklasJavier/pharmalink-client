@@ -24,17 +24,14 @@ public class LoginView extends VerticalLayout implements BeforeEnterObserver {
     public LoginView(AuthService authService, UserSession userSession) {
         this.userSession = userSession;
 
-        // --- Konfiguration des LoginOverlays ---
         loginOverlay.setTitle("Pharmalink");
         loginOverlay.setDescription("Sichere Authentifizierung für die Lieferkette");
         loginOverlay.setOpened(false);
 
-        // "Passwort vergessen"-Button ausblenden
         loginOverlay.setForgotPasswordButtonVisible(false);
 
         add(loginOverlay);
 
-        // --- Event-Listener für den Login-Versuch ---
         loginOverlay.addLoginListener(event -> {
             final String username = event.getUsername();
             final String password = event.getPassword();
@@ -60,10 +57,6 @@ public class LoginView extends VerticalLayout implements BeforeEnterObserver {
         });
     }
 
-    /**
-     * Stellt sicher, dass eingeloggte Benutzer weitergeleitet werden und
-     * nicht eingeloggte Benutzer das Login-Overlay sehen.
-     */
     @Override
     public void beforeEnter(BeforeEnterEvent event) {
         if (userSession.isLoggedIn()) {

@@ -75,7 +75,6 @@ public class ActorExplorerView extends VerticalLayout {
         setSpacing(false);
         setPadding(false);
 
-        // Suchleiste für Akteure
         HorizontalLayout searchBar = new HorizontalLayout();
         searchBar.setWidthFull();
         searchBar.setPadding(true);
@@ -89,10 +88,8 @@ public class ActorExplorerView extends VerticalLayout {
         searchField.setValueChangeMode(ValueChangeMode.ON_CHANGE);
         searchField.addValueChangeListener(event -> performActorSearch());
 
-        // Aktions-MenuBar hinzufügen
         MenuBar actionsMenuBar = createActorActionsMenuBar();
 
-        // Komponenten zur Suchleiste hinzufügen
         searchBar.add(searchField, actionsMenuBar);
         add(searchBar);
 
@@ -221,7 +218,6 @@ public class ActorExplorerView extends VerticalLayout {
         rightSide.setSpacing(true);
         rightSide.setPadding(true);
 
-        // --- Linke Seite: Hauptdetails Formular ---
         Binder<ActorResponseDto> binder = new Binder<>(ActorResponseDto.class);
         FormLayout detailsForm = new FormLayout();
         detailsForm.setResponsiveSteps(new FormLayout.ResponsiveStep("0", 1));
@@ -238,8 +234,6 @@ public class ActorExplorerView extends VerticalLayout {
         binder.forField(emailField).asRequired("E-Mail ist erforderlich").bind(ActorResponseDto::getEmail, ActorResponseDto::setEmail);
         binder.readBean(actorToEdit);
 
-
-        // --- Rechte Seite: IPFS Daten ---
         Grid<IpfsEntry> ipfsEditGrid = new Grid<>(IpfsEntry.class, false);
         ipfsEditGrid.addThemeVariants(GridVariant.LUMO_COMPACT, GridVariant.LUMO_ROW_STRIPES);
         ipfsEditGrid.setHeight("200px");
@@ -257,21 +251,18 @@ public class ActorExplorerView extends VerticalLayout {
         GridContextMenu<IpfsEntry> contextMenu = ipfsEditGrid.addContextMenu();
         contextMenu.addItem("Zeile bearbeiten", event -> event.getItem().ifPresent(item -> showIpfsEntryRowEditDialog(item, ipfsDataProvider)));
 
-        // --- Buttons unter dem Grid ---
         Button addRowButton = new Button("Zeile hinzufügen", VaadinIcon.PLUS.create());
         addRowButton.addThemeVariants(ButtonVariant.LUMO_TERTIARY_INLINE);
         addRowButton.addClickListener(e -> showIpfsEntryRowEditDialog(new IpfsEntry("", ""), ipfsDataProvider));
 
         Button removeRowButton = new Button("Zeile entfernen", VaadinIcon.TRASH.create());
         removeRowButton.addThemeVariants(ButtonVariant.LUMO_TERTIARY_INLINE, ButtonVariant.LUMO_ERROR);
-        removeRowButton.setVisible(false); // Standardmässig unsichtbar
+        removeRowButton.setVisible(false);
 
-        // Listener, um den Button bei Auswahl zu zeigen/verstecken
         ipfsEditGrid.asSingleSelect().addValueChangeListener(event -> {
             removeRowButton.setVisible(event.getValue() != null);
         });
 
-        // Klick-Aktion für den Entfernen-Button
         removeRowButton.addClickListener(e -> {
             IpfsEntry selectedEntry = ipfsEditGrid.asSingleSelect().getValue();
             if (selectedEntry != null) {
@@ -288,7 +279,6 @@ public class ActorExplorerView extends VerticalLayout {
         splitLayout.addToSecondary(rightSide);
         dialog.add(splitLayout);
 
-        // --- Dialog-Footer mit Buttons ---
         Button saveButton = new Button("Speichern");
         saveButton.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
         saveButton.addClickListener(e -> {

@@ -10,7 +10,6 @@ public class ActorResponseDto {
     private String ipfsLink;
     private Map<String, Object> ipfsData;
 
-    // Getter und Setter
     public String getActorId() {
         return actorId;
     }

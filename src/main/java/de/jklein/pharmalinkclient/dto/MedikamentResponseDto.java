@@ -8,10 +8,9 @@ public class MedikamentResponseDto {
     private String herstellerId;
     private String bezeichnung;
     private String ipfsLink;
-    private String status; // z.B. "erstellt", "freigegeben"
+    private String status;
     private Map<String, Object> ipfsData;
-
-    // Getter und Setter
+    
     public String getMedId() {
         return medId;
     }

@@ -1,11 +1,10 @@
 package de.jklein.pharmalinkclient.service;
 
 import de.jklein.pharmalinkclient.config.BackendConfig;
-import de.jklein.pharmalinkclient.dto.ActorFilterCriteriaDto; // NEU: Import
 import de.jklein.pharmalinkclient.dto.ActorResponseDto;
 import de.jklein.pharmalinkclient.dto.ActorUpdateRequestDto;
-import de.jklein.pharmalinkclient.dto.MedikamentResponseDto; // NEU: Import für getMedicationsByHersteller
-import de.jklein.pharmalinkclient.dto.ActorIdResponse; // NEU: Import für getMyActorId
+import de.jklein.pharmalinkclient.dto.MedikamentResponseDto;
+import de.jklein.pharmalinkclient.dto.ActorIdResponse;
 import de.jklein.pharmalinkclient.security.UserSession;
 import org.springframework.http.*;
 import org.springframework.web.client.RestTemplate;
@@ -18,8 +17,8 @@ import com.vaadin.flow.spring.annotation.UIScope;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
-import com.fasterxml.jackson.core.JsonProcessingException; // Für Debug-Ausgabe
-import com.fasterxml.jackson.databind.ObjectMapper; // Für Debug-Ausgabe
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 
 @SpringComponent
@@ -36,7 +35,6 @@ public class ActorService {
         this.userSession = userSession;
     }
 
-    // Hilfsmethode zum Erstellen der HttpEntity mit JWT (für GET)
     private HttpEntity<String> createHttpEntityWithJwt() {
         HttpHeaders headers = new HttpHeaders();
         String jwt = userSession.getJwt();
@@ -48,7 +46,6 @@ public class ActorService {
         return new HttpEntity<>(headers);
     }
 
-    // Hilfsmethode zum Erstellen der HttpEntity mit JWT und Body (für POST/PUT)
     private <T> HttpEntity<T> createHttpEntityWithJwtAndBody(T body) {
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);
@@ -61,11 +58,6 @@ public class ActorService {
         return new HttpEntity<>(body, headers);
     }
 
-    /**
-     * Sucht nach Akteuren anhand verschiedener Kriterien.
-     * Ersetzt getAllActors() und getActorsByRole().
-     * Entspricht GET /api/v1/search/actors (searchActors)
-     */
     public List<ActorResponseDto> searchActors(String role, String bezeichnung, String actorId) {
         UriComponentsBuilder uriBuilder = UriComponentsBuilder.fromHttpUrl(backendConfig.getBaseUrl() + "/v1/search/actors");
 
@@ -100,11 +92,6 @@ public class ActorService {
         return Collections.emptyList();
     }
 
-
-    /**
-     * Ruft Hersteller-Informationen anhand der Hersteller-ID ab.
-     * Entspricht GET /api/v1/hersteller/{herstellerId} (getHerstellerById)
-     */
     public ActorResponseDto getHerstellerById(String herstellerId) {
         String url = backendConfig.getBaseUrl() + "/v1/hersteller/" + herstellerId; // Korrigierter URI-Pfad
         HttpEntity<String> entity = createHttpEntityWithJwt();
@@ -125,10 +112,6 @@ public class ActorService {
         return null;
     }
 
-    /**
-     * Ruft alle Medikamente für einen spezifischen Hersteller ab.
-     * Entspricht GET /api/v1/hersteller/{herstellerId}/medications (getMedicationsByHersteller)
-     */
     public List<MedikamentResponseDto> getMedicationsByHersteller(String herstellerId) { // NEU: Methode hinzugefügt
         String url = backendConfig.getBaseUrl() + "/v1/hersteller/" + herstellerId + "/medications"; // Korrigierter URI-Pfad
         HttpEntity<String> entity = createHttpEntityWithJwt();
@@ -151,12 +134,8 @@ public class ActorService {
         return Collections.emptyList();
     }
 
-    /**
-     * Ruft Informationen für den aktuell initialisierten Hersteller ab.
-     * Entspricht GET /api/v1/hersteller/me (getMyInfo)
-     */
-    public ActorResponseDto getMyHerstellerInfo() { // NEU: Methode hinzugefügt
-        String url = backendConfig.getBaseUrl() + "/v1/hersteller/me"; // Korrigierter URI-Pfad
+    public ActorResponseDto getMyHerstellerInfo() {
+        String url = backendConfig.getBaseUrl() + "/v1/hersteller/me";
         HttpEntity<String> entity = createHttpEntityWithJwt();
 
         try {
@@ -175,12 +154,8 @@ public class ActorService {
         return null;
     }
 
-    /**
-     * Gibt die actorId des Benutzers zurück, der beim Anwendungsstart initialisiert wurde.
-     * Entspricht GET /api/v1/hersteller/id (getMyActorId)
-     */
-    public ActorIdResponse getMyActorId() { // NEU: Methode hinzugefügt
-        String url = backendConfig.getBaseUrl() + "/v1/hersteller/id"; // Korrigierter URI-Pfad
+    public ActorIdResponse getMyActorId() {
+        String url = backendConfig.getBaseUrl() + "/v1/hersteller/id";
         HttpEntity<String> entity = createHttpEntityWithJwt();
 
         try {
@@ -199,12 +174,8 @@ public class ActorService {
         return null;
     }
 
-    /**
-     * Aktualisiert einen Akteur.
-     * Entspricht PUT /api/v1/actors/{actorId} (updateActor)
-     */
     public boolean updateActor(String actorId, ActorUpdateRequestDto requestDto) {
-        String url = backendConfig.getBaseUrl() + "/v1/actors/" + actorId; // Korrigierter URI-Pfad
+        String url = backendConfig.getBaseUrl() + "/v1/actors/" + actorId;
         HttpEntity<ActorUpdateRequestDto> entity = createHttpEntityWithJwtAndBody(requestDto);
 
         try {

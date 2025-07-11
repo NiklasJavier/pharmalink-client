@@ -1,7 +1,7 @@
 package de.jklein.pharmalinkclient.service;
 
 import com.vaadin.flow.server.VaadinSession;
-import de.jklein.pharmalinkclient.config.BackendConfig; // **NEU: Import für BackendConfig**
+import de.jklein.pharmalinkclient.config.BackendConfig;
 import de.jklein.pharmalinkclient.dto.auth.LoginRequest;
 import de.jklein.pharmalinkclient.dto.LoginResponse;
 import de.jklein.pharmalinkclient.security.UserSession;
@@ -23,21 +23,14 @@ public class AuthService {
     private static final Logger log = LoggerFactory.getLogger(AuthService.class);
     private final WebClient webClient;
     private final UserSession userSession;
-    // private final String loginUrl = "https://d1.navine.tech/api/v1/auth/login"; // **ENTFERNT: Hartcodierte URL**
-    private final BackendConfig backendConfig; // **NEU: Instanz von BackendConfig**
+    private final BackendConfig backendConfig;
 
-    // **GEÄNDERT: Konstruktor injiziert BackendConfig**
     public AuthService(WebClient.Builder webClientBuilder, UserSession userSession, BackendConfig backendConfig) {
-        this.backendConfig = backendConfig; // BackendConfig injizieren
-        // **GEÄNDERT: baseUrl dynamisch setzen**
+        this.backendConfig = backendConfig;
         this.webClient = webClientBuilder.baseUrl(this.backendConfig.getBaseUrl()).build();
         this.userSession = userSession;
     }
 
-    /**
-     * Ruft den Backend-Endpunkt auf und gibt bei Erfolg den JWT zurück.
-     * @return Ein CompletableFuture, das bei Erfolg den Token enthält, sonst leer ist.
-     */
     public CompletableFuture<Optional<String>> fetchToken(String username, String password) {
         log.info("Frage Token für Benutzer an: {}", username);
         LoginRequest loginRequest = new LoginRequest(username, password);
@@ -60,10 +53,7 @@ public class AuthService {
                 );
         return future;
     }
-
-    /**
-     * Führt den Logout-Prozess durch, indem alle Sitzungsdaten bereinigt werden.
-     */
+    
     public void logout() {
         if (VaadinSession.getCurrent() != null) {
             try {

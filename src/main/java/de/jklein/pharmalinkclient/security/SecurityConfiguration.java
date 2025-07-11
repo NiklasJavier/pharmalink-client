@@ -22,15 +22,12 @@ public class SecurityConfiguration extends VaadinWebSecurity {
 
     @Bean
     public SecurityContextRepository securityContextRepository() {
-        // Stellt das Repository als Bean zur Verfügung, damit wir es injizieren können.
         return new HttpSessionSecurityContextRepository();
     }
 
     @Override
     protected void configure(HttpSecurity http) throws Exception {
         super.configure(http);
-        // Wir definieren LoginView als das Ziel für unauthentifizierte Benutzer.
-        // LoginSuccessView wird durch @AnonymousAllowed geschützt.
         setLoginView(http, LoginView.class);
     }
 }

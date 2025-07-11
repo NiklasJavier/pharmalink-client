@@ -16,7 +16,6 @@ public class ActorUpdateRequestDto {
         this.ipfsData = ipfsData;
     }
 
-    // Getter und Setter
     public String getName() {
         return name;
     }

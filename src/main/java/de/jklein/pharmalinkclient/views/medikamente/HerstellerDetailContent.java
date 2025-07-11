@@ -1,4 +1,3 @@
-// src/main/java/de/jklein/pharmalinkclient/views/medikamente/HerstellerDetailContent.java
 package de.jklein.pharmalinkclient.views.medikamente;
 
 import com.vaadin.flow.component.formlayout.FormLayout;
@@ -24,10 +23,6 @@ public class HerstellerDetailContent extends Div {
     private final StateService stateService;
     private final ActorService actorService;
 
-    // medikamentIpfsDataContentProvider wird hier nicht mehr benötigt oder verwendet,
-    // aber der Konstruktor benötigt ihn möglicherweise noch, um die Bean-Erstellung in MedikamenteView zu ermöglichen.
-    // Wir können ihn hier im Konstruktor akzeptieren, aber nicht speichern oder verwenden.
-
     private TextField actorIdField;
     private TextField bezeichnungField;
     private TextField roleField;
@@ -35,8 +30,6 @@ public class HerstellerDetailContent extends Div {
 
     @Autowired
     public HerstellerDetailContent(StateService stateService, ActorService actorService,
-                                   // Behalten Sie diesen Parameter, um die Injektion zu ermöglichen,
-                                   // auch wenn er in dieser Klasse nicht direkt verwendet wird.
                                    ObjectProvider<MedikamentIpfsDataContent> medikamentIpfsDataContentProvider) {
         this.stateService = stateService;
         this.actorService = actorService;
@@ -89,7 +82,6 @@ public class HerstellerDetailContent extends Div {
 
             if (herstellerId != null && !herstellerId.isEmpty()) {
                 System.out.println("DEBUG: Suche Hersteller für ID: " + herstellerId);
-                // AKTUELLE ANPASSUNG: Verwende actorService.getHerstellerById()
                 ActorResponseDto hersteller = actorService.getHerstellerById(herstellerId);
                 if (hersteller != null) {
                     actorIdField.setValue(hersteller.getActorId() != null ? hersteller.getActorId() : "N/A");

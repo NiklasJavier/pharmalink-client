@@ -5,7 +5,6 @@ public class IpfsEntry {
     private String value;
 
     public IpfsEntry() {
-        // Standardkonstruktor für Binder
     }
 
     public IpfsEntry(String key, String value) {

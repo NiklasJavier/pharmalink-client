@@ -1,14 +1,11 @@
 // src/main/java/de/jklein/pharmalinkclient/views/medikamente/MasterContent.java
 package de.jklein.pharmalinkclient.views.medikamente;
 
-import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.html.Div;
-import com.vaadin.flow.component.html.H3;
 import com.vaadin.flow.component.grid.Grid;
 import com.vaadin.flow.component.grid.GridVariant;
 import com.vaadin.flow.spring.annotation.SpringComponent;
 import com.vaadin.flow.spring.annotation.UIScope;
-import com.vaadin.flow.component.UI; // Import UI
 import com.vaadin.flow.component.notification.Notification;
 import com.vaadin.flow.component.notification.NotificationVariant;
 import com.vaadin.flow.component.notification.Notification.Position;
@@ -23,9 +20,7 @@ import com.vaadin.flow.data.renderer.LitRenderer;
 
 import java.util.List;
 import java.util.Optional;
-import java.util.function.Consumer; // For the double-click listener
-import java.util.stream.Collectors; // Beibehalten, obwohl clientseitige Filterung entfällt, falls Stream-Operationen für andere Zwecke genutzt werden
-
+import java.util.function.Consumer;
 
 @SpringComponent
 @UIScope
@@ -35,7 +30,6 @@ public class MasterContent extends Div {
     private final StateService stateService;
     private final Grid<MedikamentResponseDto> grid;
 
-    // Consumer to notify parent view about double-click
     private Consumer<MedikamentResponseDto> doubleClickListener;
 
 
@@ -99,12 +93,10 @@ public class MasterContent extends Div {
         grid.addColumn("bezeichnung").setHeader("Bezeichnung").setAutoWidth(true);
         grid.addColumn("medId").setHeader("Medikament ID").setAutoWidth(true);
 
-        // Listener für die Auswahl im Grid, um das ausgewählte Medikament im StateService zu setzen
         grid.asSingleSelect().addValueChangeListener(event -> {
             stateService.setSelectedMedikament(event.getValue());
         });
 
-        // Add double-click listener
         grid.addItemDoubleClickListener(event -> {
             MedikamentResponseDto selectedMedikament = event.getItem();
             if (selectedMedikament != null && doubleClickListener != null) {
@@ -117,15 +109,9 @@ public class MasterContent extends Div {
 
         add(grid);
 
-        // Initialer Aufruf zum Laden und Filtern der Medikamente beim Start der Komponente
-        // Die `updateGridWithFilters`-Methode wird direkt aufgerufen und holt Daten über den Service.
-        // updateGridWithFilters(stateService.getCurrentMedikamentFilterCriteria());
-
-        // Listener für Änderungen der Filterkriterien im StateService
         stateService.addMedikamentFilterCriteriaListener(this::updateGridWithFilters);
     }
 
-    // Public method to set the double-click listener from the parent view (MedikamenteView)
     public void addDoubleClickListener(Consumer<MedikamentResponseDto> listener) {
         this.doubleClickListener = listener;
     }

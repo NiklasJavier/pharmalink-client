@@ -176,12 +176,11 @@ public class MainLayout extends AppLayout {
         themeToggleButton.setIcon(icon.create());
     }
 
-    // Angepasste Methode zum Abrufen und Speichern der Systemdaten
     private void fetchAndStoreSystemData(UI ui) {
         systemService.getCurrentActorId()
-                .subscribe(actorId -> { // actorId ist jetzt der reine String
+                .subscribe(actorId -> {
                     ui.access(() -> {
-                        stateService.setCurrentActorId(actorId); // Setzt die Actor ID im StateService
+                        stateService.setCurrentActorId(actorId); 
                         stateService.setSystemDataLoadedForSession(true);
                         System.out.println("Aktuelle Actor ID im Frontend (von MainLayout): " + actorId);
                     });

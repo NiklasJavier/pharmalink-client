@@ -62,9 +62,6 @@ public class ActorDetailContent extends SplitLayout {
         this.setOrientation(SplitLayout.Orientation.VERTICAL);
         this.setSplitterPosition(50);
 
-        // --- START DER ÄNDERUNG: Neues SplitLayout für den oberen Bereich ---
-
-        // 1. Container für Hersteller-Infos (linke Seite des neuen Splits)
         VerticalLayout actorInfoSection = new VerticalLayout();
         actorInfoSection.setPadding(false);
         actorInfoSection.setSpacing(false);
@@ -87,7 +84,6 @@ public class ActorDetailContent extends SplitLayout {
         detailsLayout.add(actorIdField, bezeichnungField, roleField, emailField);
         actorInfoSection.add(detailsLayout);
 
-        // 2. Container für IPFS-Daten (rechte Seite des neuen Splits)
         ipfsDataSection = new VerticalLayout();
         ipfsDataSection.setPadding(false);
         ipfsDataSection.setSpacing(false);
@@ -105,16 +101,11 @@ public class ActorDetailContent extends SplitLayout {
         ipfsDataSection.add(ipfsDataGrid);
         ipfsDataSection.setVisible(false);
 
-        // 3. Neues horizontales SplitLayout erstellen und befüllen
         SplitLayout topSplit = new SplitLayout(actorInfoSection, ipfsDataSection);
         topSplit.setOrientation(SplitLayout.Orientation.HORIZONTAL);
-        topSplit.setSplitterPosition(60); // 60% für Hersteller-Infos, 40% für IPFS
+        topSplit.setSplitterPosition(60);
         topSplit.setSizeFull();
 
-        // --- ENDE DER ÄNDERUNG ---
-
-
-        // Container für zugeordnete Medikamente (untere Hälfte)
         actorMedicationsSection = new VerticalLayout();
         actorMedicationsSection.getStyle().set("border-top", "1px solid var(--lumo-contrast-10pct)");
 
@@ -142,7 +133,6 @@ public class ActorDetailContent extends SplitLayout {
         actorMedicationsSection.add(actorMedicationsGrid);
         actorMedicationsSection.setVisible(false);
 
-        // Das neue SplitLayout (oben) und die Medikamenten-Sektion (unten) zum Haupt-SplitLayout hinzufügen
         this.addToPrimary(topSplit);
         this.addToSecondary(actorMedicationsSection);
 

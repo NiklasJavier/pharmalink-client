@@ -1,7 +1,6 @@
 package de.jklein.pharmalinkclient.views.actorexplorer;
 
 import com.vaadin.flow.component.html.Div;
-import com.vaadin.flow.component.html.H3;
 import com.vaadin.flow.component.html.Span;
 import com.vaadin.flow.component.grid.Grid;
 import com.vaadin.flow.component.grid.GridVariant;
@@ -50,9 +49,6 @@ public class ActorMasterContent extends Div {
         grid.addThemeVariants(GridVariant.LUMO_ROW_STRIPES, GridVariant.LUMO_NO_BORDER);
         grid.setSizeFull();
 
-        // --- HIER SIND DIE ÄNDERUNGEN ---
-
-        // Spalte für Bezeichnung mit Fallback-Logik
         grid.addComponentColumn(actor -> {
             String bezeichnung = actor.getBezeichnung();
             if (bezeichnung == null || bezeichnung.trim().isEmpty()) {
@@ -63,7 +59,6 @@ public class ActorMasterContent extends Div {
             return new Span(bezeichnung);
         }).setHeader("Bezeichnung").setAutoWidth(true).setSortable(true);
 
-        // Spalte für E-Mail mit Fallback-Logik
         grid.addComponentColumn(actor -> {
             String email = actor.getEmail();
             if (email == null || email.trim().isEmpty()) {
@@ -73,8 +68,6 @@ public class ActorMasterContent extends Div {
             }
             return new Span(email);
         }).setHeader("E-Mail").setAutoWidth(true).setSortable(true);
-
-        // --- ENDE DER ÄNDERUNGEN ---
 
         grid.addColumn("role").setHeader("Rolle").setAutoWidth(true).setSortable(true);
         grid.addColumn("actorId").setHeader("Akteur ID").setAutoWidth(true).setSortable(true);

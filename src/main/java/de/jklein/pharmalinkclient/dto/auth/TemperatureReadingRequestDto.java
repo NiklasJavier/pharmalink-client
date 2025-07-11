@@ -2,14 +2,13 @@ package de.jklein.pharmalinkclient.dto.auth;
 
 public class TemperatureReadingRequestDto {
     private String temperature;
-    private String timestamp; // Als String, wie in UnitResponseDto angegeben
+    private String timestamp;
 
     public TemperatureReadingRequestDto(String temperature, String timestamp) {
         this.temperature = temperature;
         this.timestamp = timestamp;
     }
 
-    // Getter und Setter
     public String getTemperature() {
         return temperature;
     }

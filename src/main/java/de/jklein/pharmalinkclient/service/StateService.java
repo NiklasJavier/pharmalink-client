@@ -6,9 +6,9 @@ import de.jklein.pharmalinkclient.dto.MedikamentFilterCriteriaDto;
 import de.jklein.pharmalinkclient.dto.MedikamentResponseDto;
 import de.jklein.pharmalinkclient.dto.SystemStateDto;
 import de.jklein.pharmalinkclient.dto.SystemStatsDto;
-import de.jklein.pharmalinkclient.dto.Actor;       // NEU: Import für das Actor-DTO aus SystemStateDto
-import de.jklein.pharmalinkclient.dto.Medikament;  // NEU: Import für das Medikament-DTO aus SystemStateDto
-import de.jklein.pharmalinkclient.dto.Unit;       // NEU: Import für das Unit-DTO aus SystemStateDto
+import de.jklein.pharmalinkclient.dto.Actor;      
+import de.jklein.pharmalinkclient.dto.Medikament;
+import de.jklein.pharmalinkclient.dto.Unit;
 import com.vaadin.flow.spring.annotation.SpringComponent;
 import com.vaadin.flow.spring.annotation.VaadinSessionScope;
 
@@ -17,7 +17,6 @@ import java.beans.PropertyChangeListener;
 import java.beans.PropertyChangeSupport;
 import java.util.Collections;
 import java.util.List;
-import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.concurrent.CopyOnWriteArrayList;
@@ -30,43 +29,34 @@ public class StateService implements Serializable {
 
     private static final long serialVersionUID = 1L;
 
-    // Medikamenten-bezogener Zustand (bestehend)
     private Optional<MedikamentResponseDto> selectedMedikament = Optional.empty();
     private Optional<MedikamentFilterCriteriaDto> currentMedikamentFilterCriteria = Optional.empty();
 
     private final transient CopyOnWriteArrayList<Consumer<Optional<MedikamentResponseDto>>> selectedMedikamentListeners = new CopyOnWriteArrayList<>();
     private final transient CopyOnWriteArrayList<Consumer<Optional<MedikamentFilterCriteriaDto>>> medikamentFilterCriteriaListeners = new CopyOnWriteArrayList<>();
 
-    // Akteur-bezogener Zustand (bestehend)
     private ActorResponseDto selectedActor;
     private final PropertyChangeSupport actorSelectionChangeSupport = new PropertyChangeSupport(this);
 
-    // Akteur-Filterkriterien (bestehend)
     private Optional<ActorFilterCriteriaDto> currentActorFilterCriteria = Optional.empty();
     private final transient CopyOnWriteArrayList<Consumer<Optional<ActorFilterCriteriaDto>>> actorFilterCriteriaListeners = new CopyOnWriteArrayList<>();
 
-    // Zustand für Navigation zu einem spezifischen Medikament (bestehend)
     private String navigateToMedikamentId;
     private final PropertyChangeSupport navigateToMedikamentSupport = new PropertyChangeSupport(this);
 
-    // NEUE ZUSTANDSVARIABLEN (bereits vorhanden und aktualisiert)
     private String currentActorId;
     private SystemStatsDto cacheStats; // GEÄNDERT: Typ von Map<String, Object> zu SystemStatsDto
     private SystemStateDto systemState; // NEU: Variable für den vollständigen Systemzustand
 
-    // Listener für neue Zustandsvariablen (bereits vorhanden und aktualisiert)
     private final transient CopyOnWriteArrayList<Consumer<String>> currentActorIdListeners = new CopyOnWriteArrayList<>();
     private final transient CopyOnWriteArrayList<Consumer<SystemStatsDto>> cacheStatsListeners = new CopyOnWriteArrayList<>(); // GEÄNDERT: Typ
     private final transient CopyOnWriteArrayList<Consumer<SystemStateDto>> systemStateListeners = new CopyOnWriteArrayList<>(); // NEU: Listener für SystemStateDto
 
-    // NEU: Flag für den Ladezustand der Systemdaten pro Sitzung (bestehend)
     private boolean systemDataLoadedForSession = false;
 
-    // NEU HINZUGEFÜGT: Liste für alle geladenen Akteure im StateService (bestehend)
     private List<ActorResponseDto> allLoadedActors = Collections.emptyList();
     private final transient CopyOnWriteArrayList<Consumer<List<ActorResponseDto>>> allLoadedActorsListeners = new CopyOnWriteArrayList<>();
 
-    // --- NEU: Listen für die Detaildaten aus SystemStateDto ---
     private List<Actor> allSystemActors = Collections.emptyList();
     private final transient CopyOnWriteArrayList<Consumer<List<Actor>>> allSystemActorsListeners = new CopyOnWriteArrayList<>();
 
@@ -82,7 +72,6 @@ public class StateService implements Serializable {
         this.currentActorFilterCriteria = Optional.of(new ActorFilterCriteriaDto(""));
     }
 
-    // --- Methoden für selectedMedikament (unverändert) ---
     public Optional<MedikamentResponseDto> getSelectedMedikament() {
         return selectedMedikament;
     }
@@ -105,7 +94,6 @@ public class StateService implements Serializable {
         selectedMedikamentListeners.remove(listener);
     }
 
-    // --- Methoden für MedikamentFilterCriteriaDto (unverändert) ---
     public Optional<MedikamentFilterCriteriaDto> getCurrentMedikamentFilterCriteria() {
         return currentMedikamentFilterCriteria;
     }
@@ -124,7 +112,6 @@ public class StateService implements Serializable {
         medikamentFilterCriteriaListeners.remove(listener);
     }
 
-    // --- Methoden für die Akteur-Auswahl (unverändert) ---
     public ActorResponseDto getSelectedActor() {
         return selectedActor;
     }
@@ -154,10 +141,8 @@ public class StateService implements Serializable {
     }
 
     public void removeSelectedActorListener(Consumer<ActorResponseDto> consumer) {
-        // Implementierung zum Entfernen, falls benötigt
     }
 
-    // --- Methoden für Navigation zu einem spezifischen Medikament (unverändert) ---
     public String getNavigateToMedikamentId() {
         return navigateToMedikamentId;
     }
@@ -188,7 +173,6 @@ public class StateService implements Serializable {
         navigateToMedikamentSupport.removePropertyChangeListener("navigateToMedikamentId", listener);
     }
 
-    // --- Methoden für Akteur-Filterkriterien (unverändert) ---
     public Optional<ActorFilterCriteriaDto> getCurrentActorFilterCriteria() {
         return currentActorFilterCriteria;
     }
@@ -207,7 +191,6 @@ public class StateService implements Serializable {
         actorFilterCriteriaListeners.remove(listener);
     }
 
-    // --- Methoden für currentActorId (unverändert) ---
     public String getCurrentActorId() {
         return currentActorId;
     }
@@ -226,7 +209,6 @@ public class StateService implements Serializable {
         currentActorIdListeners.remove(listener);
     }
 
-    // --- Methoden für cacheStats (GEÄNDERT: Parameter- und Rückgabetyp) ---
     public SystemStatsDto getCacheStats() {
         return cacheStats;
     }
@@ -245,7 +227,6 @@ public class StateService implements Serializable {
         cacheStatsListeners.remove(listener);
     }
 
-    // --- NEU: Methoden für systemState ---
     public SystemStateDto getSystemState() {
         return systemState;
     }
@@ -263,7 +244,6 @@ public class StateService implements Serializable {
         systemStateListeners.remove(listener);
     }
 
-    // NEU: GETTER und SETTER für die systemDataLoadedForSession Flag (unverändert)
     public boolean isSystemDataLoadedForSession() {
         return systemDataLoadedForSession;
     }
@@ -272,7 +252,6 @@ public class StateService implements Serializable {
         this.systemDataLoadedForSession = systemDataLoadedForSession;
     }
 
-    // NEU: Getter und Setter für alle geladenen Akteure (unverändert vom Original-Code)
     public List<ActorResponseDto> getAllLoadedActors() {
         return allLoadedActors;
     }
@@ -290,7 +269,6 @@ public class StateService implements Serializable {
         allLoadedActorsListeners.remove(listener);
     }
 
-    // --- NEU: Getter und Setter für allSystemActors (Details aus SystemStateDto) ---
     public List<Actor> getAllSystemActors() {
         return allSystemActors;
     }
@@ -308,7 +286,6 @@ public class StateService implements Serializable {
         this.allSystemActorsListeners.remove(listener);
     }
 
-    // --- NEU: Getter und Setter für allSystemMedikamente (Details aus SystemStateDto) ---
     public List<Medikament> getAllSystemMedikamente() {
         return allSystemMedikamente;
     }
@@ -326,7 +303,6 @@ public class StateService implements Serializable {
         this.allSystemMedikamenteListeners.remove(listener);
     }
 
-    // --- NEU: Getter und Setter für mySystemUnits (Details aus SystemStateDto) ---
     public List<Unit> getMySystemUnits() {
         return mySystemUnits;
     }

@@ -1,4 +1,3 @@
-// src/main/java/de/jklein/pharmalinkclient/views/medikamente/MedikamentIpfsDataContent.java
 package de.jklein.pharmalinkclient.views.medikamente;
 
 import com.vaadin.flow.component.html.Div;
@@ -13,11 +12,9 @@ import de.jklein.pharmalinkclient.dto.MedikamentResponseDto;
 import de.jklein.pharmalinkclient.service.StateService;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
-import java.util.Map;
 
 @SpringComponent
 @UIScope
@@ -34,8 +31,6 @@ public class MedikamentIpfsDataContent extends Div {
         getStyle().set("background-color", "var(--lumo-base-color)");
         getStyle().set("padding", "var(--lumo-space-m)");
         getStyle().set("flex-grow", "1");
-
-        // Removed: add(new H4("Medikament IPFS Daten"));
 
         ipfsDataGrid = new Grid<>(IpfsEntry.class, false);
         ipfsDataGrid.addThemeVariants(GridVariant.LUMO_COMPACT, GridVariant.LUMO_ROW_STRIPES, GridVariant.LUMO_NO_BORDER);

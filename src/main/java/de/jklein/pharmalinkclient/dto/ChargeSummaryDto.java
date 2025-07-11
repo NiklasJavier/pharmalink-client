@@ -1,13 +1,10 @@
-// src/main/java/de/jklein/pharmalinkclient/dto/ChargeSummaryDto.java
 package de.jklein.pharmalinkclient.dto;
 
 public class ChargeSummaryDto {
     private String chargeBezeichnung;
     private long anzahl;
 
-    // Add this public no-argument constructor
     public ChargeSummaryDto() {
-        // Required by many frameworks (e.g., Spring, Jackson, Vaadin) for instantiation
     }
 
     public ChargeSummaryDto(String chargeBezeichnung, long anzahl) {

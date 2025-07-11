@@ -6,7 +6,7 @@ public class TransferUnitRangeRequestDto {
     private int startCounter;
     private int endCounter;
     private String newOwnerId;
-    private String transferTimestamp; // NEUES FELD
+    private String transferTimestamp;
 
     public TransferUnitRangeRequestDto() {
     }
@@ -19,7 +19,6 @@ public class TransferUnitRangeRequestDto {
         this.newOwnerId = newOwnerId;
     }
 
-    // Getter und Setter für alle Felder...
     public String getMedId() { return medId; }
     public void setMedId(String medId) { this.medId = medId; }
     public String getChargeBezeichnung() { return chargeBezeichnung; }
@@ -31,7 +30,6 @@ public class TransferUnitRangeRequestDto {
     public String getNewOwnerId() { return newOwnerId; }
     public void setNewOwnerId(String newOwnerId) { this.newOwnerId = newOwnerId; }
 
-    // Getter und Setter für das neue Feld
     public String getTransferTimestamp() { return transferTimestamp; }
     public void setTransferTimestamp(String transferTimestamp) { this.transferTimestamp = transferTimestamp; }
 }

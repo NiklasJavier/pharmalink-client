@@ -11,7 +11,6 @@ import de.jklein.pharmalinkclient.dto.AddTemperatureReadingRequestDto;
 import de.jklein.pharmalinkclient.dto.TransferUnitRangeRequestDto;
 import de.jklein.pharmalinkclient.dto.DeleteUnitsRequestDto;
 import de.jklein.pharmalinkclient.security.UserSession;
-import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpEntity;
@@ -41,7 +40,6 @@ public class UnitService {
         this.userSession = userSession;
     }
 
-    // Hilfsmethode zum Erstellen der HttpEntity mit JWT (für GET/DELETE)
     private HttpEntity<String> createHttpEntityWithJwt() {
         HttpHeaders headers = new HttpHeaders();
         String jwt = userSession.getJwt();
@@ -53,7 +51,6 @@ public class UnitService {
         return new HttpEntity<>(headers);
     }
 
-    // Hilfsmethode zum Erstellen der HttpEntity mit JWT und Body (für POST/PUT)
     private <T> HttpEntity<T> createHttpEntityWithJwtAndBody(T body) {
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);
@@ -66,10 +63,6 @@ public class UnitService {
         return new HttpEntity<>(body, headers);
     }
 
-    /**
-     * Ruft eine einzelne Einheit anhand ihrer ID ab.
-     * Entspricht GET /api/v1/units/{unitId} (getUnitById)
-     */
     public UnitResponseDto getUnitById(String unitId) {
         String url = backendConfig.getBaseUrl() + "/v1/units/" + unitId;
         HttpEntity<String> entity = createHttpEntityWithJwt();
@@ -90,10 +83,6 @@ public class UnitService {
         return null;
     }
 
-    /**
-     * Erstellt neue Einheiten für ein Medikament.
-     * Entspricht POST /api/v1/units/{medId}/units (createUnitsForMedication)
-     */
     public boolean createUnitsForMedication(String medId, CreateUnitsRequestDto request) {
         String url = backendConfig.getBaseUrl() + "/v1/units/" + medId + "/units";
         HttpEntity<CreateUnitsRequestDto> entity = createHttpEntityWithJwtAndBody(request);
@@ -116,10 +105,6 @@ public class UnitService {
         }
     }
 
-    /**
-     * Überträgt eine einzelne Einheit an einen neuen Besitzer.
-     * Entspricht POST /api/v1/units/{unitId}/transfer (transferUnit)
-     */
     public UnitResponseDto transferUnit(String unitId, TransferUnitRequestDto request) {
         String url = backendConfig.getBaseUrl() + "/v1/units/" + unitId + "/transfer";
         HttpEntity<TransferUnitRequestDto> entity = createHttpEntityWithJwtAndBody(request);
@@ -140,10 +125,6 @@ public class UnitService {
         return null;
     }
 
-    /**
-     * Fügt einer Einheit eine Temperaturmessung hinzu.
-     * Entspricht POST /api/v1/units/{unitId}/temperature-readings (addTemperatureReading)
-     */
     public UnitResponseDto addTemperatureReading(String unitId, AddTemperatureReadingRequestDto request) {
         String url = backendConfig.getBaseUrl() + "/v1/units/" + unitId + "/temperature-readings";
         HttpEntity<AddTemperatureReadingRequestDto> entity = createHttpEntityWithJwtAndBody(request);
@@ -164,10 +145,6 @@ public class UnitService {
         return null;
     }
 
-    /**
-     * Ruft Einheiten nach Medikament-ID, gruppiert nach Charge, ab.
-     * Entspricht GET /api/v1/units/{medId}/units-by-charge (getUnitsGroupedByCharge)
-     */
     public Map<String, List<UnitResponseDto>> getUnitsGroupedByCharge(String medId) {
         String url = UriComponentsBuilder.fromHttpUrl(backendConfig.getBaseUrl() + "/v1/units/" + medId + "/units-by-charge")
                 .toUriString(); // Sicherstellen, dass die URL korrekt ist
@@ -196,10 +173,6 @@ public class UnitService {
         return Collections.emptyMap();
     }
 
-    /**
-     * Überträgt einen Bereich von Einheiten.
-     * Entspricht POST /api/v1/units/transfer-range (transferUnitRange)
-     */
     public boolean transferUnitRange(TransferUnitRangeRequestDto request) {
         String url = backendConfig.getBaseUrl() + "/v1/units/transfer-range";
         HttpEntity<TransferUnitRangeRequestDto> entity = createHttpEntityWithJwtAndBody(request);
@@ -222,10 +195,6 @@ public class UnitService {
         }
     }
 
-    /**
-     * Löscht eine einzelne Einheit.
-     * Entspricht DELETE /api/v1/units/{unitId} (deleteUnit)
-     */
     public boolean deleteUnit(String unitId) {
         String url = backendConfig.getBaseUrl() + "/v1/units/" + unitId;
         HttpEntity<String> entity = createHttpEntityWithJwt();
@@ -245,10 +214,6 @@ public class UnitService {
         }
     }
 
-    /**
-     * Löscht Einheiten in einem Batch.
-     * Entspricht DELETE /api/v1/units/batch (deleteUnitsInBatch)
-     */
     public boolean deleteUnitsInBatch(DeleteUnitsRequestDto request) {
         String url = backendConfig.getBaseUrl() + "/v1/units/batch";
         HttpEntity<DeleteUnitsRequestDto> entity = createHttpEntityWithJwtAndBody(request);
@@ -271,18 +236,13 @@ public class UnitService {
         }
     }
 
-    /**
-     * Sucht nach Einheiten anhand der Chargenbezeichnung.
-     * Entspricht GET /api/v1/search/units (searchUnitsByCharge)
-     * ANPASSUNG: Debug-Meldungen hinzugefügt.
-     */
     public List<UnitResponseDto> searchUnitsByCharge(String query) {
         String url = UriComponentsBuilder.fromHttpUrl(backendConfig.getBaseUrl() + "/v1/search/units")
                 .queryParam("query", query)
                 .toUriString();
         HttpEntity<String> entity = createHttpEntityWithJwt();
 
-        System.out.println("DEBUG UnitService: Requesting units by charge from URL: " + url); // NEU
+        System.out.println("DEBUG UnitService: Requesting units by charge from URL: " + url); 
         try {
             ResponseEntity<UnitResponseDto[]> response = restTemplate.exchange(
                     url,
@@ -292,7 +252,7 @@ public class UnitService {
             );
             if (response.getBody() != null) {
                 List<UnitResponseDto> result = Arrays.asList(response.getBody());
-                System.out.println("DEBUG UnitService: Received " + result.size() + " units."); // NEU
+                System.out.println("DEBUG UnitService: Received " + result.size() + " units.");
                 return result;
             }
         } catch (HttpClientErrorException e) {
@@ -306,10 +266,6 @@ public class UnitService {
         return Collections.emptyList();
     }
 
-    /**
-     * Ruft die Chargenbezeichnungen und die dazugehörige Anzahl aller Units (Einheiten) für ein spezifisches Medikament ab.
-     * Entspricht GET /api/v1/units/medications/{medId}/charge-counts
-     */
     public Map<String, Integer> getChargeCountsForMedication(String medId) {
         String url = backendConfig.getBaseUrl() + "/v1/units/medications/" + medId + "/charge-counts";
         HttpEntity<String> entity = createHttpEntityWithJwt();

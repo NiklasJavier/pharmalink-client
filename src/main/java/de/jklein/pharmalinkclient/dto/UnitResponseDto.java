@@ -14,11 +14,8 @@ public class UnitResponseDto {
     private List<Map<String, String>> transferHistory;
     private Map<String, Object> ipfsData;
 
-    // HINZUGEFÜGT
     private boolean consumed;
     private String consumedRefId;
-
-    // Getter und Setter für alle Felder...
 
     public String getUnitId() {
         return unitId;
@@ -83,8 +80,7 @@ public class UnitResponseDto {
     public void setIpfsData(Map<String, Object> ipfsData) {
         this.ipfsData = ipfsData;
     }
-
-    // Getter und Setter für die neuen Felder
+    
     public boolean isConsumed() {
         return consumed;
     }

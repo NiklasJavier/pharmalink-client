@@ -18,8 +18,6 @@ import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.web.context.SecurityContextRepository;
 
-import java.util.Collections;
-
 @Route("login/token/:username/:token")
 @PageTitle("Login Process")
 @AnonymousAllowed
@@ -52,14 +50,11 @@ public class LoginSuccessView extends VerticalLayout implements BeforeEnterObser
             userSession.setUsername(username);
             userSession.setJwt(token);
 
-            // **HIER IST DIE KORREKTUR**
-            // Erstelle ein UserDetails-Objekt anstelle eines einfachen Strings.
             UserDetails userDetails = User.withUsername(username)
-                    .password("") // Passwort wird nicht benötigt, da bereits authentifiziert
-                    .roles("USER") // Weist die Rolle zu
+                    .password("")
+                    .roles("USER")
                     .build();
 
-            // Verwende das UserDetails-Objekt als Principal.
             UsernamePasswordAuthenticationToken auth = new UsernamePasswordAuthenticationToken(
                     userDetails, null, userDetails.getAuthorities());
 

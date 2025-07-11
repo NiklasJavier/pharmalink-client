@@ -28,11 +28,11 @@ import com.vaadin.flow.theme.lumo.LumoUtility.Gap;
 import de.jklein.pharmalinkclient.dto.SystemStatsDto;
 import de.jklein.pharmalinkclient.security.UserSession;
 import de.jklein.pharmalinkclient.service.StateService;
-import de.jklein.pharmalinkclient.service.SystemService; // NEU: Import für SystemService
+import de.jklein.pharmalinkclient.service.SystemService;
 import de.jklein.pharmalinkclient.views.MainLayout;
 import jakarta.annotation.security.PermitAll;
 import org.springframework.beans.factory.annotation.Autowired;
-import reactor.core.scheduler.Schedulers; // Import für Schedulers
+import reactor.core.scheduler.Schedulers;
 
 import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
@@ -52,18 +52,15 @@ public class DashboardView extends Main {
 
     private final StateService stateService;
     private final UserSession userSession;
-    private final SystemService systemService; // NEU: Instanz von SystemService
+    private final SystemService systemService;
 
-    // Kachel 1: User Info
     private final TextField usernameField;
     private final TextField roleField;
 
-    // Kachel 2: Statistiken
     private final TextField actorCountField;
     private final TextField medikamentCountField;
     private final TextField myUnitsCountField;
 
-    // Kachel 3: Actor ID & QR
     private final TextField actorIdReadonlyField;
     private Image qrCodeImage;
 
@@ -74,16 +71,14 @@ public class DashboardView extends Main {
     public DashboardView(StateService stateService, UserSession userSession, SystemService systemService) { // NEU: SystemService im Konstruktor
         this.stateService = stateService;
         this.userSession = userSession;
-        this.systemService = systemService; // Zuweisung
+        this.systemService = systemService;
         addClassName("dashboard-view");
 
-        // Haupt-Layout
         VerticalLayout rootLayout = new VerticalLayout();
         rootLayout.setSpacing(true);
         rootLayout.setPadding(true);
         rootLayout.setAlignItems(FlexComponent.Alignment.START);
 
-        // --- KACHEL 1: BENUTZERINFORMATIONEN ---
         VerticalLayout userInfoCard = createCardLayout();
         HorizontalLayout userInfoTitleRow = new HorizontalLayout(VaadinIcon.USER_CARD.create(), new H4("Ihre Informationen"));
         userInfoTitleRow.setAlignItems(FlexComponent.Alignment.CENTER);
@@ -98,7 +93,6 @@ public class DashboardView extends Main {
         userInfoCard.add(userForm);
 
 
-        // --- KACHEL 2: STATISTIKEN ---
         VerticalLayout statsCard = createCardLayout();
         HorizontalLayout statsTitleRow = new HorizontalLayout(VaadinIcon.CHART_GRID.create(), new H4("Statistiken"));
         statsTitleRow.setAlignItems(FlexComponent.Alignment.CENTER);
@@ -111,8 +105,6 @@ public class DashboardView extends Main {
         statsFormLayout.setResponsiveSteps(new FormLayout.ResponsiveStep("0", 3));
         statsCard.add(statsFormLayout);
 
-
-        // --- KACHEL 3: AKTEUR-ID & QR-CODE ---
         VerticalLayout actorIdCard = createCardLayout();
         actorIdCard.setAlignItems(FlexComponent.Alignment.CENTER);
         actorIdCard.setWidth("320px");
@@ -134,8 +126,6 @@ public class DashboardView extends Main {
 
         actorIdCard.add(qrCodeImage, actorIdReadonlyField);
 
-
-        // --- LAYOUT-ZUSAMMENFÜHRUNG ---
         HorizontalLayout topRow = new HorizontalLayout(userInfoCard, statsCard);
         topRow.addClassName(Gap.MEDIUM);
 
@@ -154,15 +144,12 @@ public class DashboardView extends Main {
     protected void onAttach(AttachEvent attachEvent) {
         super.onAttach(attachEvent);
 
-        // NEU: Initiales Laden des Systemzustands, wenn noch nicht geschehen
         if (!stateService.isSystemDataLoadedForSession()) {
             loadSystemDataOnce();
         } else {
-            // Wenn bereits geladen, aktualisiere die Felder mit den vorhandenen Daten
             updateFieldsFromStateService();
         }
 
-        // Listener registrieren (auch wenn Daten bereits geladen waren, um zukünftige Updates zu empfangen)
         actorIdListener = rawActorId -> UI.getCurrent().access(() -> {
             if (rawActorId != null && !rawActorId.isEmpty()) {
                 actorIdReadonlyField.setValue(rawActorId);
@@ -194,15 +181,12 @@ public class DashboardView extends Main {
         });
         stateService.addCacheStatsListener(cacheStatsListener);
 
-        // Initiales Setzen der Felder, falls Daten bereits vor dem `onAttach` im StateService waren
         updateFieldsFromStateService();
     }
 
-    // NEUE Methode zum Laden der Systemdaten einmalig
     private void loadSystemDataOnce() {
         UI ui = UI.getCurrent();
 
-        // Abrufen und Speichern der Akteur-ID
         systemService.getCurrentActorId()
                 .subscribeOn(Schedulers.boundedElastic())
                 .subscribe(
@@ -210,7 +194,6 @@ public class DashboardView extends Main {
                         error -> ui.access(() -> System.err.println("Fehler beim Laden der Akteur-ID: " + error.getMessage()))
                 );
 
-        // Abrufen und Speichern der Cache-Statistiken
         systemService.getCacheStats()
                 .subscribeOn(Schedulers.boundedElastic())
                 .subscribe(
@@ -218,7 +201,6 @@ public class DashboardView extends Main {
                         error -> ui.access(() -> System.err.println("Fehler beim Laden der Cache-Statistiken: " + error.getMessage()))
                 );
 
-        // Abrufen und Speichern des vollständigen Systemzustands
         systemService.getCacheState()
                 .subscribeOn(Schedulers.boundedElastic())
                 .subscribe(
@@ -233,9 +215,7 @@ public class DashboardView extends Main {
                 );
     }
 
-    // NEUE Methode zum Aktualisieren der Felder aus dem StateService
     private void updateFieldsFromStateService() {
-        // Aktualisiere Actor ID und Rolle
         String currentActorId = stateService.getCurrentActorId();
         if (currentActorId != null && !currentActorId.isEmpty()) {
             actorIdReadonlyField.setValue(currentActorId);
@@ -252,7 +232,6 @@ public class DashboardView extends Main {
             qrCodeImage.setVisible(false);
         }
 
-        // Aktualisiere Cache Statistiken
         SystemStatsDto currentCacheStats = stateService.getCacheStats();
         if (currentCacheStats != null) {
             actorCountField.setValue(String.valueOf(currentCacheStats.getActorCount()));

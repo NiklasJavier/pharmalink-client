@@ -6,8 +6,7 @@ public class TransferUnitRequestDto {
 
     @NotBlank(message = "newOwnerActorId darf nicht leer sein.")
     private String newOwnerActorId;
-
-    // Leerer Konstruktor für Frameworks
+    
     public TransferUnitRequestDto() {
     }
 
@@ -15,7 +14,6 @@ public class TransferUnitRequestDto {
         this.newOwnerActorId = newOwnerActorId;
     }
 
-    // Getter und Setter
     public String getNewOwnerActorId() {
         return newOwnerActorId;
     }
