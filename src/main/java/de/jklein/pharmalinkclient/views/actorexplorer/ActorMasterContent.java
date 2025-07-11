@@ -2,12 +2,14 @@ package de.jklein.pharmalinkclient.views.actorexplorer;
 
 import com.vaadin.flow.component.html.Div;
 import com.vaadin.flow.component.html.H3;
+import com.vaadin.flow.component.html.Span;
 import com.vaadin.flow.component.grid.Grid;
 import com.vaadin.flow.component.grid.GridVariant;
 import com.vaadin.flow.spring.annotation.SpringComponent;
 import com.vaadin.flow.spring.annotation.UIScope;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.FlexComponent;
+import com.vaadin.flow.theme.lumo.LumoUtility;
 
 import de.jklein.pharmalinkclient.dto.ActorResponseDto;
 import de.jklein.pharmalinkclient.dto.ActorFilterCriteriaDto;
@@ -18,8 +20,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.List;
 import java.util.Optional;
-import java.util.stream.Collectors;
-
 
 @SpringComponent
 @UIScope
@@ -39,14 +39,10 @@ public class ActorMasterContent extends Div {
         getStyle().set("padding", "var(--lumo-space-m)");
         setSizeFull();
 
-        // Titel und (entfernter) Button
         HorizontalLayout headerLayout = new HorizontalLayout();
         headerLayout.setWidthFull();
         headerLayout.setAlignItems(FlexComponent.Alignment.CENTER);
         headerLayout.setJustifyContentMode(FlexComponent.JustifyContentMode.BETWEEN);
-
-        H3 title = new H3("Akteur-Liste (Master)");
-        headerLayout.add(title);
 
         add(headerLayout);
 
@@ -54,16 +50,38 @@ public class ActorMasterContent extends Div {
         grid.addThemeVariants(GridVariant.LUMO_ROW_STRIPES, GridVariant.LUMO_NO_BORDER);
         grid.setSizeFull();
 
-        grid.addColumn("bezeichnung").setHeader("Bezeichnung").setAutoWidth(true);
-        grid.addColumn("email").setHeader("E-Mail").setAutoWidth(true);
-        grid.addColumn("role").setHeader("Rolle").setAutoWidth(true);
-        grid.addColumn("actorId").setHeader("Akteur ID").setAutoWidth(true);
+        // --- HIER SIND DIE ÄNDERUNGEN ---
+
+        // Spalte für Bezeichnung mit Fallback-Logik
+        grid.addComponentColumn(actor -> {
+            String bezeichnung = actor.getBezeichnung();
+            if (bezeichnung == null || bezeichnung.trim().isEmpty()) {
+                Span span = new Span("nicht angegeben");
+                span.addClassName(LumoUtility.TextColor.SECONDARY);
+                return span;
+            }
+            return new Span(bezeichnung);
+        }).setHeader("Bezeichnung").setAutoWidth(true).setSortable(true);
+
+        // Spalte für E-Mail mit Fallback-Logik
+        grid.addComponentColumn(actor -> {
+            String email = actor.getEmail();
+            if (email == null || email.trim().isEmpty()) {
+                Span span = new Span("nicht angegeben");
+                span.addClassName(LumoUtility.TextColor.SECONDARY);
+                return span;
+            }
+            return new Span(email);
+        }).setHeader("E-Mail").setAutoWidth(true).setSortable(true);
+
+        // --- ENDE DER ÄNDERUNGEN ---
+
+        grid.addColumn("role").setHeader("Rolle").setAutoWidth(true).setSortable(true);
+        grid.addColumn("actorId").setHeader("Akteur ID").setAutoWidth(true).setSortable(true);
 
         add(grid);
 
         stateService.addActorFilterCriteriaListener(this::updateGridWithFilters);
-
-        // Initialer Aufruf zum Laden und Filtern der Akteure beim Start der Komponente
         updateGridWithFilters(stateService.getCurrentActorFilterCriteria());
 
         grid.asSingleSelect().addValueChangeListener(event -> {
@@ -72,35 +90,21 @@ public class ActorMasterContent extends Div {
     }
 
     public void updateGridWithFilters(Optional<ActorFilterCriteriaDto> criteriaOptional) {
-        // ALLE Akteure vom Dienst laden (dies ist die REST-Abfrage)
-        List<ActorResponseDto> allActors = actorService.getAllActors();
+        List<ActorResponseDto> fetchedActors;
 
-        // WICHTIG: Speichern Sie die geladenen Akteure im StateService,
-        // damit andere Teile der Anwendung (wie "Meine Stammdaten anzeigen") sie nutzen können.
-        stateService.setAllLoadedActors(allActors); // <-- DIES IST DIE NEUE ZEILE
-
-        List<ActorResponseDto> filteredActors = allActors;
-
+        String searchTerm = "";
         if (criteriaOptional.isPresent()) {
-            ActorFilterCriteriaDto criteria = criteriaOptional.get();
-            String searchTerm = criteria.getSearchTerm() != null ? criteria.getSearchTerm().toLowerCase() : "";
-
-            if (!searchTerm.isEmpty()) {
-                filteredActors = allActors.stream()
-                        .filter(actor ->
-                                (actor.getBezeichnung() != null && actor.getBezeichnung().toLowerCase().contains(searchTerm)) ||
-                                        (actor.getActorId() != null && actor.getActorId().toLowerCase().contains(searchTerm)) ||
-                                        (actor.getEmail() != null && actor.getEmail().toLowerCase().contains(searchTerm))
-                        )
-                        .collect(Collectors.toList());
-            }
+            searchTerm = criteriaOptional.get().getSearchTerm();
         }
-        grid.setItems(filteredActors);
 
-        if (filteredActors.isEmpty()) {
+        fetchedActors = actorService.searchActors(null, searchTerm, null);
+        stateService.setAllLoadedActors(fetchedActors);
+        grid.setItems(fetchedActors);
+
+        if (fetchedActors.isEmpty()) {
             grid.asSingleSelect().clear();
         } else {
-            if (!grid.asSingleSelect().isEmpty() && !filteredActors.contains(grid.asSingleSelect().getValue())) {
+            if (!grid.asSingleSelect().isEmpty() && !fetchedActors.contains(grid.asSingleSelect().getValue())) {
                 grid.asSingleSelect().clear();
             }
         }

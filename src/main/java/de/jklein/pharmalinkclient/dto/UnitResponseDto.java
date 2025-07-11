@@ -2,6 +2,7 @@ package de.jklein.pharmalinkclient.dto;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 
 public class UnitResponseDto {
     private String unitId;
@@ -9,11 +10,16 @@ public class UnitResponseDto {
     private String chargeBezeichnung;
     private String ipfsLink;
     private String currentOwnerActorId;
-    private List<Map<String, String>> temperatureReadings; // Jede Map enthält "temperature" und "timestamp"
-    private List<Map<String, String>> transferHistory; // Jede Map enthält "from", "to", "timestamp"
+    private List<Map<String, String>> temperatureReadings;
+    private List<Map<String, String>> transferHistory;
     private Map<String, Object> ipfsData;
 
-    // Getter und Setter
+    // HINZUGEFÜGT
+    private boolean consumed;
+    private String consumedRefId;
+
+    // Getter und Setter für alle Felder...
+
     public String getUnitId() {
         return unitId;
     }
@@ -76,5 +82,35 @@ public class UnitResponseDto {
 
     public void setIpfsData(Map<String, Object> ipfsData) {
         this.ipfsData = ipfsData;
+    }
+
+    // Getter und Setter für die neuen Felder
+    public boolean isConsumed() {
+        return consumed;
+    }
+
+    public void setConsumed(boolean consumed) {
+        this.consumed = consumed;
+    }
+
+    public String getConsumedRefId() {
+        return consumedRefId;
+    }
+
+    public void setConsumedRefId(String consumedRefId) {
+        this.consumedRefId = consumedRefId;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        UnitResponseDto that = (UnitResponseDto) o;
+        return Objects.equals(unitId, that.unitId);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(unitId);
     }
 }

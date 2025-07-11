@@ -1,6 +1,7 @@
 package de.jklein.pharmalinkclient.dto;
 
 import java.util.Map;
+import java.util.Objects;
 
 public class MedikamentResponseDto {
     private String medId;
@@ -57,5 +58,18 @@ public class MedikamentResponseDto {
 
     public void setIpfsData(Map<String, Object> ipfsData) {
         this.ipfsData = ipfsData;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        MedikamentResponseDto that = (MedikamentResponseDto) o;
+        return Objects.equals(medId, that.medId);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(medId);
     }
 }

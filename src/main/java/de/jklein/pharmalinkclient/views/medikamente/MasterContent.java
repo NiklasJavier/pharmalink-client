@@ -8,6 +8,10 @@ import com.vaadin.flow.component.grid.Grid;
 import com.vaadin.flow.component.grid.GridVariant;
 import com.vaadin.flow.spring.annotation.SpringComponent;
 import com.vaadin.flow.spring.annotation.UIScope;
+import com.vaadin.flow.component.UI; // Import UI
+import com.vaadin.flow.component.notification.Notification;
+import com.vaadin.flow.component.notification.NotificationVariant;
+import com.vaadin.flow.component.notification.Notification.Position;
 
 import de.jklein.pharmalinkclient.dto.MedikamentFilterCriteriaDto;
 import de.jklein.pharmalinkclient.dto.MedikamentResponseDto;
@@ -19,7 +23,8 @@ import com.vaadin.flow.data.renderer.LitRenderer;
 
 import java.util.List;
 import java.util.Optional;
-import java.util.stream.Collectors;
+import java.util.function.Consumer; // For the double-click listener
+import java.util.stream.Collectors; // Beibehalten, obwohl clientseitige Filterung entfällt, falls Stream-Operationen für andere Zwecke genutzt werden
 
 
 @SpringComponent
@@ -30,6 +35,10 @@ public class MasterContent extends Div {
     private final StateService stateService;
     private final Grid<MedikamentResponseDto> grid;
 
+    // Consumer to notify parent view about double-click
+    private Consumer<MedikamentResponseDto> doubleClickListener;
+
+
     @Autowired
     public MasterContent(MedikamentService medikamentService, StateService stateService) {
         this.medikamentService = medikamentService;
@@ -38,8 +47,6 @@ public class MasterContent extends Div {
         getStyle().set("background-color", "var(--lumo-contrast-5pct)");
         getStyle().set("padding", "var(--lumo-space-m)");
         setSizeFull();
-
-        add(new H3("Medikamenten-Liste (Master)"));
 
         grid = new Grid<>(MedikamentResponseDto.class, false);
         grid.addThemeVariants(GridVariant.LUMO_ROW_STRIPES, GridVariant.LUMO_NO_BORDER);
@@ -92,48 +99,55 @@ public class MasterContent extends Div {
         grid.addColumn("bezeichnung").setHeader("Bezeichnung").setAutoWidth(true);
         grid.addColumn("medId").setHeader("Medikament ID").setAutoWidth(true);
 
-        // NEU (schon drin): Listener für die Auswahl im Grid, um das ausgewählte Medikament im StateService zu setzen
+        // Listener für die Auswahl im Grid, um das ausgewählte Medikament im StateService zu setzen
         grid.asSingleSelect().addValueChangeListener(event -> {
             stateService.setSelectedMedikament(event.getValue());
         });
 
+        // Add double-click listener
+        grid.addItemDoubleClickListener(event -> {
+            MedikamentResponseDto selectedMedikament = event.getItem();
+            if (selectedMedikament != null && doubleClickListener != null) {
+                doubleClickListener.accept(selectedMedikament);
+            } else if (selectedMedikament == null) {
+                Notification.show("Kein Medikament zum Anzeigen ausgewählt.", 3000, Position.MIDDLE).addThemeVariants(NotificationVariant.LUMO_WARNING);
+            }
+        });
+
+
         add(grid);
 
-        updateGridWithFilters(stateService.getCurrentMedikamentFilterCriteria());
+        // Initialer Aufruf zum Laden und Filtern der Medikamente beim Start der Komponente
+        // Die `updateGridWithFilters`-Methode wird direkt aufgerufen und holt Daten über den Service.
+        // updateGridWithFilters(stateService.getCurrentMedikamentFilterCriteria());
 
+        // Listener für Änderungen der Filterkriterien im StateService
         stateService.addMedikamentFilterCriteriaListener(this::updateGridWithFilters);
     }
 
+    // Public method to set the double-click listener from the parent view (MedikamenteView)
+    public void addDoubleClickListener(Consumer<MedikamentResponseDto> listener) {
+        this.doubleClickListener = listener;
+    }
+
+
     public void updateGridWithFilters(Optional<MedikamentFilterCriteriaDto> criteriaOptional) {
-        List<MedikamentResponseDto> allMedikamente = medikamentService.getAllMedikamente();
+        List<MedikamentResponseDto> filteredMedikamente;
 
-        List<MedikamentResponseDto> filteredMedikamente = allMedikamente;
+        MedikamentFilterCriteriaDto criteria = criteriaOptional.orElse(new MedikamentFilterCriteriaDto("", "Ohne Filter", false));
+        System.out.println("DEBUG MasterContent: Suche Medikamente mit Kriterien: " + criteria.getSearchTerm() + ", " + criteria.getStatusFilter() + ", " + criteria.isFilterByCurrentActor());
 
-        if (criteriaOptional.isPresent()) {
-            MedikamentFilterCriteriaDto criteria = criteriaOptional.get();
-            String searchTerm = criteria.getSearchTerm() != null ? criteria.getSearchTerm().toLowerCase() : "";
-            String statusFilter = criteria.getStatusFilter();
+        filteredMedikamente = medikamentService.searchMedikamente(criteria);
 
-            filteredMedikamente = allMedikamente.stream()
-                    .filter(medikament -> {
-                        boolean matchesSearch = true;
-                        if (!searchTerm.isEmpty()) {
-                            matchesSearch = (medikament.getBezeichnung() != null && medikament.getBezeichnung().toLowerCase().contains(searchTerm)) ||
-                                    (medikament.getHerstellerId() != null && medikament.getHerstellerId().toLowerCase().contains(searchTerm)) ||
-                                    (medikament.getMedId() != null && medikament.getMedId().toLowerCase().contains(searchTerm));
-                        }
-
-                        boolean matchesStatus = true;
-                        if (!"Ohne Filter".equals(statusFilter) && statusFilter != null) {
-                            matchesStatus = (medikament.getStatus() != null && medikament.getStatus().equalsIgnoreCase(statusFilter));
-                        }
-                        return matchesSearch && matchesStatus;
-                    })
-                    .collect(Collectors.toList());
+        System.out.println("DEBUG MasterContent: Medikamente vom Service erhalten: " + filteredMedikamente.size() + " Einträge.");
+        if (filteredMedikamente.isEmpty()) {
+            System.out.println("DEBUG MasterContent: Erhaltene Liste ist leer.");
+        } else {
+            System.out.println("DEBUG MasterContent: Erster Medikamenten-Eintrag (Beispiel): " + filteredMedikamente.get(0).getBezeichnung() + ", ID: " + filteredMedikamente.get(0).getMedId());
         }
+
         grid.setItems(filteredMedikamente);
-        // NEU (schon drin): Sicherstellen, dass nach dem Aktualisieren des Grids das selectedMedikament zurückgesetzt wird,
-        // falls das zuvor ausgewählte Element nicht mehr in der Liste ist.
+
         if (!filteredMedikamente.contains(stateService.getSelectedMedikament().orElse(null))) {
             stateService.clearSelectedMedikament();
         }

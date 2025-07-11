@@ -44,4 +44,14 @@ public class MedikamentFilterCriteriaDto {
     public void setFilterByCurrentActor(boolean filterByCurrentActor) { // NEU: Setter für das Flag
         this.filterByCurrentActor = filterByCurrentActor;
     }
+
+    @Override
+    public String toString() {
+        return "MedikamentFilterCriteriaDto{" +
+                "searchTerm='" + searchTerm + '\'' +
+                ", statusFilter='" + statusFilter + '\'' +
+                ", filterByCurrentActor=" + filterByCurrentActor +
+                // weitere Felder hinzufügen
+                '}';
+    }
 }

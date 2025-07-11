@@ -25,11 +25,14 @@ import com.vaadin.flow.router.Route;
 import com.vaadin.flow.spring.annotation.SpringComponent;
 import com.vaadin.flow.spring.annotation.UIScope;
 import com.vaadin.flow.theme.lumo.LumoUtility.Gap;
+import de.jklein.pharmalinkclient.dto.SystemStatsDto;
 import de.jklein.pharmalinkclient.security.UserSession;
 import de.jklein.pharmalinkclient.service.StateService;
+import de.jklein.pharmalinkclient.service.SystemService; // NEU: Import für SystemService
 import de.jklein.pharmalinkclient.views.MainLayout;
 import jakarta.annotation.security.PermitAll;
 import org.springframework.beans.factory.annotation.Autowired;
+import reactor.core.scheduler.Schedulers; // Import für Schedulers
 
 import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
@@ -49,6 +52,7 @@ public class DashboardView extends Main {
 
     private final StateService stateService;
     private final UserSession userSession;
+    private final SystemService systemService; // NEU: Instanz von SystemService
 
     // Kachel 1: User Info
     private final TextField usernameField;
@@ -64,12 +68,13 @@ public class DashboardView extends Main {
     private Image qrCodeImage;
 
     private Consumer<String> actorIdListener;
-    private Consumer<Map<String, Object>> cacheStatsListener;
+    private Consumer<SystemStatsDto> cacheStatsListener;
 
     @Autowired
-    public DashboardView(StateService stateService, UserSession userSession) {
+    public DashboardView(StateService stateService, UserSession userSession, SystemService systemService) { // NEU: SystemService im Konstruktor
         this.stateService = stateService;
         this.userSession = userSession;
+        this.systemService = systemService; // Zuweisung
         addClassName("dashboard-view");
 
         // Haupt-Layout
@@ -125,7 +130,6 @@ public class DashboardView extends Main {
         qrCodeImage.setVisible(false);
         qrCodeImage.setWidth("200px");
         qrCodeImage.setHeight("200px");
-        // HIER IST DIE ANPASSUNG:
         qrCodeImage.addClassName("qr-code-image");
 
         actorIdCard.add(qrCodeImage, actorIdReadonlyField);
@@ -150,6 +154,15 @@ public class DashboardView extends Main {
     protected void onAttach(AttachEvent attachEvent) {
         super.onAttach(attachEvent);
 
+        // NEU: Initiales Laden des Systemzustands, wenn noch nicht geschehen
+        if (!stateService.isSystemDataLoadedForSession()) {
+            loadSystemDataOnce();
+        } else {
+            // Wenn bereits geladen, aktualisiere die Felder mit den vorhandenen Daten
+            updateFieldsFromStateService();
+        }
+
+        // Listener registrieren (auch wenn Daten bereits geladen waren, um zukünftige Updates zu empfangen)
         actorIdListener = rawActorId -> UI.getCurrent().access(() -> {
             if (rawActorId != null && !rawActorId.isEmpty()) {
                 actorIdReadonlyField.setValue(rawActorId);
@@ -169,10 +182,10 @@ public class DashboardView extends Main {
         stateService.addCurrentActorIdListener(actorIdListener);
 
         cacheStatsListener = stats -> UI.getCurrent().access(() -> {
-            if (stats != null) { // Add this null check
-                actorCountField.setValue(stats.getOrDefault("actorCount", "N/A").toString());
-                medikamentCountField.setValue(stats.getOrDefault("medikamentCount", "N/A").toString());
-                myUnitsCountField.setValue(stats.getOrDefault("myUnitsCount", "N/A").toString());
+            if (stats != null) {
+                actorCountField.setValue(String.valueOf(stats.getActorCount()));
+                medikamentCountField.setValue(String.valueOf(stats.getMedikamentCount()));
+                myUnitsCountField.setValue(String.valueOf(stats.getMyUnitsCount()));
             } else {
                 actorCountField.setValue("N/A");
                 medikamentCountField.setValue("N/A");
@@ -181,9 +194,77 @@ public class DashboardView extends Main {
         });
         stateService.addCacheStatsListener(cacheStatsListener);
 
-        actorIdListener.accept(stateService.getCurrentActorId());
-        cacheStatsListener.accept(stateService.getCacheStats());
+        // Initiales Setzen der Felder, falls Daten bereits vor dem `onAttach` im StateService waren
+        updateFieldsFromStateService();
     }
+
+    // NEUE Methode zum Laden der Systemdaten einmalig
+    private void loadSystemDataOnce() {
+        UI ui = UI.getCurrent();
+
+        // Abrufen und Speichern der Akteur-ID
+        systemService.getCurrentActorId()
+                .subscribeOn(Schedulers.boundedElastic())
+                .subscribe(
+                        actorId -> ui.access(() -> stateService.setCurrentActorId(actorId)),
+                        error -> ui.access(() -> System.err.println("Fehler beim Laden der Akteur-ID: " + error.getMessage()))
+                );
+
+        // Abrufen und Speichern der Cache-Statistiken
+        systemService.getCacheStats()
+                .subscribeOn(Schedulers.boundedElastic())
+                .subscribe(
+                        stats -> ui.access(() -> stateService.setCacheStats(stats)),
+                        error -> ui.access(() -> System.err.println("Fehler beim Laden der Cache-Statistiken: " + error.getMessage()))
+                );
+
+        // Abrufen und Speichern des vollständigen Systemzustands
+        systemService.getCacheState()
+                .subscribeOn(Schedulers.boundedElastic())
+                .subscribe(
+                        systemState -> ui.access(() -> {
+                            stateService.setSystemState(systemState);
+                            stateService.setAllSystemActors(systemState.getAllActors());
+                            stateService.setAllSystemMedikamente(systemState.getAllMedikamente());
+                            stateService.setMySystemUnits(systemState.getMyUnits());
+                            stateService.setSystemDataLoadedForSession(true); // Flag setzen
+                        }),
+                        error -> ui.access(() -> System.err.println("Fehler beim Laden des Systemzustands: " + error.getMessage()))
+                );
+    }
+
+    // NEUE Methode zum Aktualisieren der Felder aus dem StateService
+    private void updateFieldsFromStateService() {
+        // Aktualisiere Actor ID und Rolle
+        String currentActorId = stateService.getCurrentActorId();
+        if (currentActorId != null && !currentActorId.isEmpty()) {
+            actorIdReadonlyField.setValue(currentActorId);
+            String role = currentActorId.contains("-") ? currentActorId.split("-", 2)[0] : "Unbekannt";
+            roleField.setValue(role);
+            String base64QrCode = generateQrCodeBase64(currentActorId);
+            if (base64QrCode != null) {
+                qrCodeImage.setSrc("data:image/png;base64," + base64QrCode);
+                qrCodeImage.setVisible(true);
+            }
+        } else {
+            actorIdReadonlyField.setValue("N/A");
+            roleField.setValue("N/A");
+            qrCodeImage.setVisible(false);
+        }
+
+        // Aktualisiere Cache Statistiken
+        SystemStatsDto currentCacheStats = stateService.getCacheStats();
+        if (currentCacheStats != null) {
+            actorCountField.setValue(String.valueOf(currentCacheStats.getActorCount()));
+            medikamentCountField.setValue(String.valueOf(currentCacheStats.getMedikamentCount()));
+            myUnitsCountField.setValue(String.valueOf(currentCacheStats.getMyUnitsCount()));
+        } else {
+            actorCountField.setValue("N/A");
+            medikamentCountField.setValue("N/A");
+            myUnitsCountField.setValue("N/A");
+        }
+    }
+
 
     @Override
     protected void onDetach(DetachEvent detachEvent) {

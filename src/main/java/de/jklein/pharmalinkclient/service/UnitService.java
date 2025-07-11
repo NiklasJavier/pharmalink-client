@@ -1,10 +1,15 @@
+// UnitService.java
 package de.jklein.pharmalinkclient.service;
 
+import com.vaadin.flow.spring.annotation.SpringComponent;
+import com.vaadin.flow.spring.annotation.UIScope;
 import de.jklein.pharmalinkclient.config.BackendConfig;
-import de.jklein.pharmalinkclient.dto.CreateUnitRequestDto;
+import de.jklein.pharmalinkclient.dto.CreateUnitsRequestDto;
 import de.jklein.pharmalinkclient.dto.TransferUnitRequestDto;
 import de.jklein.pharmalinkclient.dto.UnitResponseDto;
-import de.jklein.pharmalinkclient.dto.auth.TemperatureReadingRequestDto;
+import de.jklein.pharmalinkclient.dto.AddTemperatureReadingRequestDto;
+import de.jklein.pharmalinkclient.dto.TransferUnitRangeRequestDto;
+import de.jklein.pharmalinkclient.dto.DeleteUnitsRequestDto;
 import de.jklein.pharmalinkclient.security.UserSession;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
@@ -14,15 +19,13 @@ import org.springframework.http.HttpMethod;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.util.UriComponentsBuilder;
-
-import com.vaadin.flow.spring.annotation.SpringComponent;
-import com.vaadin.flow.spring.annotation.UIScope;
+import org.springframework.http.MediaType;
+import org.springframework.core.ParameterizedTypeReference;
 
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
-import org.springframework.http.MediaType; // Für MediaType
-
+import java.util.Map;
 
 @SpringComponent
 @UIScope
@@ -38,7 +41,7 @@ public class UnitService {
         this.userSession = userSession;
     }
 
-    // Hilfsmethode zum Erstellen der HttpEntity mit JWT (für GET)
+    // Hilfsmethode zum Erstellen der HttpEntity mit JWT (für GET/DELETE)
     private HttpEntity<String> createHttpEntityWithJwt() {
         HttpHeaders headers = new HttpHeaders();
         String jwt = userSession.getJwt();
@@ -46,29 +49,29 @@ public class UnitService {
             headers.setBearerAuth(jwt);
         } else {
             System.err.println("Kein JWT-Token in der UserSession verfügbar. Authentifizierung erforderlich.");
-            // Optional: Eine spezifische Exception werfen, anstatt nur zu loggen
         }
         return new HttpEntity<>(headers);
     }
 
-    // Hilfsmethode zum Erstellen der HttpEntity mit JWT und Body (für POST)
+    // Hilfsmethode zum Erstellen der HttpEntity mit JWT und Body (für POST/PUT)
     private <T> HttpEntity<T> createHttpEntityWithJwtAndBody(T body) {
         HttpHeaders headers = new HttpHeaders();
-        headers.setContentType(MediaType.APPLICATION_JSON); // Set Content-Type for POST
+        headers.setContentType(MediaType.APPLICATION_JSON);
         String jwt = userSession.getJwt();
         if (jwt != null && !jwt.isEmpty()) {
             headers.setBearerAuth(jwt);
         } else {
             System.err.println("Kein JWT-Token in der UserSession verfügbar. Authentifizierung erforderlich.");
-            // Optional: Eine spezifische Exception werfen
         }
         return new HttpEntity<>(body, headers);
     }
 
-
-    // GET /api/v1/units/{unitId}
+    /**
+     * Ruft eine einzelne Einheit anhand ihrer ID ab.
+     * Entspricht GET /api/v1/units/{unitId} (getUnitById)
+     */
     public UnitResponseDto getUnitById(String unitId) {
-        String url = backendConfig.getBaseUrl() + "/units/" + unitId;
+        String url = backendConfig.getBaseUrl() + "/v1/units/" + unitId;
         HttpEntity<String> entity = createHttpEntityWithJwt();
 
         try {
@@ -87,30 +90,38 @@ public class UnitService {
         return null;
     }
 
-    // POST /api/v1/units/{medId}/units
-    public UnitResponseDto createUnit(String medId, CreateUnitRequestDto request) {
-        String url = backendConfig.getBaseUrl() + "/units/" + medId + "/units";
-        HttpEntity<CreateUnitRequestDto> entity = createHttpEntityWithJwtAndBody(request);
+    /**
+     * Erstellt neue Einheiten für ein Medikament.
+     * Entspricht POST /api/v1/units/{medId}/units (createUnitsForMedication)
+     */
+    public boolean createUnitsForMedication(String medId, CreateUnitsRequestDto request) {
+        String url = backendConfig.getBaseUrl() + "/v1/units/" + medId + "/units";
+        HttpEntity<CreateUnitsRequestDto> entity = createHttpEntityWithJwtAndBody(request);
 
         try {
-            ResponseEntity<UnitResponseDto> response = restTemplate.exchange(
+            restTemplate.exchange(
                     url,
                     HttpMethod.POST,
                     entity,
-                    UnitResponseDto.class
+                    Void.class
             );
-            return response.getBody();
+            System.out.println("Einheit(en) für Medikament ID '" + medId + "' erfolgreich erstellt.");
+            return true;
         } catch (HttpClientErrorException e) {
-            System.err.println("Fehler beim Erstellen einer Einheit für Medikament ID '" + medId + "': " + e.getStatusCode() + " " + e.getResponseBodyAsString());
+            System.err.println("Fehler beim Erstellen von Einheiten für Medikament ID '" + medId + "': " + e.getStatusCode() + " " + e.getResponseBodyAsString());
+            return false;
         } catch (Exception e) {
-            System.err.println("Allgemeiner Fehler beim Erstellen einer Einheit: " + e.getMessage());
+            System.err.println("Allgemeiner Fehler beim Erstellen von Einheiten: " + e.getMessage());
+            return false;
         }
-        return null;
     }
 
-    // POST /api/v1/units/{unitId}/transfer
+    /**
+     * Überträgt eine einzelne Einheit an einen neuen Besitzer.
+     * Entspricht POST /api/v1/units/{unitId}/transfer (transferUnit)
+     */
     public UnitResponseDto transferUnit(String unitId, TransferUnitRequestDto request) {
-        String url = backendConfig.getBaseUrl() + "/units/" + unitId + "/transfer";
+        String url = backendConfig.getBaseUrl() + "/v1/units/" + unitId + "/transfer";
         HttpEntity<TransferUnitRequestDto> entity = createHttpEntityWithJwtAndBody(request);
 
         try {
@@ -129,10 +140,13 @@ public class UnitService {
         return null;
     }
 
-    // POST /api/v1/units/{unitId}/temperature-readings
-    public UnitResponseDto addTemperatureReading(String unitId, TemperatureReadingRequestDto request) {
-        String url = backendConfig.getBaseUrl() + "/units/" + unitId + "/temperature-readings";
-        HttpEntity<TemperatureReadingRequestDto> entity = createHttpEntityWithJwtAndBody(request);
+    /**
+     * Fügt einer Einheit eine Temperaturmessung hinzu.
+     * Entspricht POST /api/v1/units/{unitId}/temperature-readings (addTemperatureReading)
+     */
+    public UnitResponseDto addTemperatureReading(String unitId, AddTemperatureReadingRequestDto request) {
+        String url = backendConfig.getBaseUrl() + "/v1/units/" + unitId + "/temperature-readings";
+        HttpEntity<AddTemperatureReadingRequestDto> entity = createHttpEntityWithJwtAndBody(request);
 
         try {
             ResponseEntity<UnitResponseDto> response = restTemplate.exchange(
@@ -150,27 +164,195 @@ public class UnitService {
         return null;
     }
 
-    // GET /api/v1/units/{medId}/units-by-charge
-    // Beachten Sie, dass dieser Endpunkt laut Ihrer Beschreibung eine Map zurückgeben könnte.
-    // Hier wird angenommen, dass es eine Liste von UnitResponseDto ist. Wenn es eine Map ist, müsste der Rückgabetyp angepasst werden.
-    public List<UnitResponseDto> getUnitsByMedIdAndCharge(String medId) {
-        String url = backendConfig.getBaseUrl() + "/units/" + medId + "/units-by-charge";
+    /**
+     * Ruft Einheiten nach Medikament-ID, gruppiert nach Charge, ab.
+     * Entspricht GET /api/v1/units/{medId}/units-by-charge (getUnitsGroupedByCharge)
+     */
+    public Map<String, List<UnitResponseDto>> getUnitsGroupedByCharge(String medId) {
+        String url = UriComponentsBuilder.fromHttpUrl(backendConfig.getBaseUrl() + "/v1/units/" + medId + "/units-by-charge")
+                .toUriString(); // Sicherstellen, dass die URL korrekt ist
         HttpEntity<String> entity = createHttpEntityWithJwt();
 
+        System.out.println("DEBUG: Requesting charge counts from URL: " + url);
+        try {
+            ResponseEntity<Map<String, List<UnitResponseDto>>> response = restTemplate.exchange(
+                    url,
+                    HttpMethod.GET,
+                    entity,
+                    new ParameterizedTypeReference<Map<String, List<UnitResponseDto>>>() {}
+            );
+            if (response.getBody() != null) {
+                System.out.println("DEBUG: Received charge counts response: " + response.getBody());
+                return response.getBody();
+            }
+        } catch (HttpClientErrorException e) {
+            System.err.println("Fehler beim Laden der Chargenanzahl für Medikament ID '" + medId + "': " + e.getStatusCode() + " " + e.getResponseBodyAsString());
+            System.err.println("Backend Response Body: " + e.getResponseBodyAsString());
+        } catch (Exception e) {
+            System.err.println("Allgemeiner Fehler beim Laden der Chargenanzahl für Medikament ID: " + e.getMessage());
+            e.printStackTrace();
+        }
+        System.out.println("DEBUG: Returning empty map for charge counts.");
+        return Collections.emptyMap();
+    }
+
+    /**
+     * Überträgt einen Bereich von Einheiten.
+     * Entspricht POST /api/v1/units/transfer-range (transferUnitRange)
+     */
+    public boolean transferUnitRange(TransferUnitRangeRequestDto request) {
+        String url = backendConfig.getBaseUrl() + "/v1/units/transfer-range";
+        HttpEntity<TransferUnitRangeRequestDto> entity = createHttpEntityWithJwtAndBody(request);
+
+        try {
+            restTemplate.exchange(
+                    url,
+                    HttpMethod.POST,
+                    entity,
+                    Void.class
+            );
+            System.out.println("Einheiten-Bereich erfolgreich transferiert.");
+            return true;
+        } catch (HttpClientErrorException e) {
+            System.err.println("Fehler beim Transfer des Einheiten-Bereichs: " + e.getStatusCode() + " " + e.getResponseBodyAsString());
+            return false;
+        } catch (Exception e) {
+            System.err.println("Allgemeiner Fehler beim Transfer des Einheiten-Bereichs: " + e.getMessage());
+            return false;
+        }
+    }
+
+    /**
+     * Löscht eine einzelne Einheit.
+     * Entspricht DELETE /api/v1/units/{unitId} (deleteUnit)
+     */
+    public boolean deleteUnit(String unitId) {
+        String url = backendConfig.getBaseUrl() + "/v1/units/" + unitId;
+        HttpEntity<String> entity = createHttpEntityWithJwt();
+
+        try {
+            restTemplate.exchange(
+                    url,
+                    HttpMethod.DELETE,
+                    entity,
+                    Void.class
+            );
+            System.out.println("Einheit mit ID " + unitId + " erfolgreich gelöscht.");
+            return true;
+        } catch (HttpClientErrorException e) {
+            System.err.println("Fehler beim Löschen der Einheit mit ID '" + unitId + "': " + e.getStatusCode() + " " + e.getResponseBodyAsString());
+            return false;
+        }
+    }
+
+    /**
+     * Löscht Einheiten in einem Batch.
+     * Entspricht DELETE /api/v1/units/batch (deleteUnitsInBatch)
+     */
+    public boolean deleteUnitsInBatch(DeleteUnitsRequestDto request) {
+        String url = backendConfig.getBaseUrl() + "/v1/units/batch";
+        HttpEntity<DeleteUnitsRequestDto> entity = createHttpEntityWithJwtAndBody(request);
+
+        try {
+            restTemplate.exchange(
+                    url,
+                    HttpMethod.DELETE,
+                    entity,
+                    Void.class
+            );
+            System.out.println("Einheiten im Batch erfolgreich gelöscht.");
+            return true;
+        } catch (HttpClientErrorException e) {
+            System.err.println("Fehler beim Löschen von Einheiten im Batch: " + e.getStatusCode() + " " + e.getResponseBodyAsString());
+            return false;
+        } catch (Exception e) {
+            System.err.println("Allgemeiner Fehler beim Löschen von Einheiten im Batch: " + e.getMessage());
+            return false;
+        }
+    }
+
+    /**
+     * Sucht nach Einheiten anhand der Chargenbezeichnung.
+     * Entspricht GET /api/v1/search/units (searchUnitsByCharge)
+     * ANPASSUNG: Debug-Meldungen hinzugefügt.
+     */
+    public List<UnitResponseDto> searchUnitsByCharge(String query) {
+        String url = UriComponentsBuilder.fromHttpUrl(backendConfig.getBaseUrl() + "/v1/search/units")
+                .queryParam("query", query)
+                .toUriString();
+        HttpEntity<String> entity = createHttpEntityWithJwt();
+
+        System.out.println("DEBUG UnitService: Requesting units by charge from URL: " + url); // NEU
         try {
             ResponseEntity<UnitResponseDto[]> response = restTemplate.exchange(
                     url,
                     HttpMethod.GET,
                     entity,
-                    UnitResponseDto[].class // Annahme: gibt Liste von Units zurück, auch wenn Map erwähnt ist
+                    UnitResponseDto[].class
             );
             if (response.getBody() != null) {
-                return Arrays.asList(response.getBody());
+                List<UnitResponseDto> result = Arrays.asList(response.getBody());
+                System.out.println("DEBUG UnitService: Received " + result.size() + " units."); // NEU
+                return result;
             }
         } catch (HttpClientErrorException e) {
-            System.err.println("Fehler beim Laden von Einheiten nach Medikament-ID und Charge '" + medId + "': " + e.getStatusCode() + " " + e.getResponseBodyAsString());
+            System.err.println("Fehler beim Suchen von Einheiten nach Charge '" + query + "': " + e.getStatusCode() + " " + e.getResponseBodyAsString());
+            System.err.println("Backend Response Body: " + e.getResponseBodyAsString()); // NEU
         } catch (Exception e) {
-            System.err.println("Allgemeiner Fehler beim Laden von Einheiten nach Medikament-ID und Charge: " + e.getMessage());
+            System.err.println("Allgemeiner Fehler beim Suchen von Einheiten nach Charge: " + e.getMessage());
+            e.printStackTrace(); // NEU
+        }
+        System.out.println("DEBUG UnitService: Returning empty list for units by charge."); // NEU
+        return Collections.emptyList();
+    }
+
+    /**
+     * Ruft die Chargenbezeichnungen und die dazugehörige Anzahl aller Units (Einheiten) für ein spezifisches Medikament ab.
+     * Entspricht GET /api/v1/units/medications/{medId}/charge-counts
+     */
+    public Map<String, Integer> getChargeCountsForMedication(String medId) {
+        String url = backendConfig.getBaseUrl() + "/v1/units/medications/" + medId + "/charge-counts";
+        HttpEntity<String> entity = createHttpEntityWithJwt();
+
+        System.out.println("DEBUG: Requesting charge counts from URL: " + url);
+        try {
+            ResponseEntity<Map<String, Integer>> response = restTemplate.exchange(
+                    url,
+                    HttpMethod.GET,
+                    entity,
+                    new ParameterizedTypeReference<Map<String, Integer>>() {}
+            );
+            if (response.getBody() != null) {
+                System.out.println("DEBUG: Received charge counts response: " + response.getBody());
+                return response.getBody();
+            }
+        } catch (HttpClientErrorException e) {
+            System.err.println("Fehler beim Laden der Chargenanzahl für Medikament ID '" + medId + "': " + e.getStatusCode() + " " + e.getResponseBodyAsString());
+            System.err.println("Backend Response Body: " + e.getResponseBodyAsString());
+        } catch (Exception e) {
+            System.err.println("Allgemeiner Fehler beim Laden der Chargenanzahl für Medikament ID: " + e.getMessage());
+            e.printStackTrace();
+        }
+        System.out.println("DEBUG: Returning empty map for charge counts.");
+        return Collections.emptyMap();
+    }
+
+    public List<UnitResponseDto> getMyUnits() {
+        String url = backendConfig.getBaseUrl() + "/v1/units/mine";
+        HttpEntity<String> entity = createHttpEntityWithJwt();
+
+        try {
+            ResponseEntity<List<UnitResponseDto>> response = restTemplate.exchange(
+                    url,
+                    HttpMethod.GET,
+                    entity,
+                    new ParameterizedTypeReference<List<UnitResponseDto>>() {}
+            );
+            return response.getBody();
+        } catch (HttpClientErrorException e) {
+            System.err.println("Fehler beim Laden der eigenen Einheiten: " + e.getStatusCode() + " " + e.getResponseBodyAsString());
+        } catch (Exception e) {
+            System.err.println("Allgemeiner Fehler beim Laden der eigenen Einheiten: " + e.getMessage());
         }
         return Collections.emptyList();
     }

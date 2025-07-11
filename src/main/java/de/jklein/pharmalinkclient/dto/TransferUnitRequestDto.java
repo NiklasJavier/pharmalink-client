@@ -1,28 +1,26 @@
 package de.jklein.pharmalinkclient.dto;
 
-public class TransferUnitRequestDto {
-    private String fromActorId;
-    private String toActorId;
+import jakarta.validation.constraints.NotBlank;
 
-    public TransferUnitRequestDto(String fromActorId, String toActorId) {
-        this.fromActorId = fromActorId;
-        this.toActorId = toActorId;
+public class TransferUnitRequestDto {
+
+    @NotBlank(message = "newOwnerActorId darf nicht leer sein.")
+    private String newOwnerActorId;
+
+    // Leerer Konstruktor für Frameworks
+    public TransferUnitRequestDto() {
+    }
+
+    public TransferUnitRequestDto(String newOwnerActorId) {
+        this.newOwnerActorId = newOwnerActorId;
     }
 
     // Getter und Setter
-    public String getFromActorId() {
-        return fromActorId;
+    public String getNewOwnerActorId() {
+        return newOwnerActorId;
     }
 
-    public void setFromActorId(String fromActorId) {
-        this.fromActorId = fromActorId;
-    }
-
-    public String getToActorId() {
-        return toActorId;
-    }
-
-    public void setToActorId(String toActorId) {
-        this.toActorId = toActorId;
+    public void setNewOwnerActorId(String newOwnerActorId) {
+        this.newOwnerActorId = newOwnerActorId;
     }
 }

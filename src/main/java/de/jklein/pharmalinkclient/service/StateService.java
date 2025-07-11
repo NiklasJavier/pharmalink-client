@@ -1,9 +1,14 @@
 package de.jklein.pharmalinkclient.service;
 
 import de.jklein.pharmalinkclient.dto.ActorFilterCriteriaDto;
-import de.jklein.pharmalinkclient.dto.ActorResponseDto; // Import für ActorResponseDto
+import de.jklein.pharmalinkclient.dto.ActorResponseDto;
 import de.jklein.pharmalinkclient.dto.MedikamentFilterCriteriaDto;
 import de.jklein.pharmalinkclient.dto.MedikamentResponseDto;
+import de.jklein.pharmalinkclient.dto.SystemStateDto;
+import de.jklein.pharmalinkclient.dto.SystemStatsDto;
+import de.jklein.pharmalinkclient.dto.Actor;       // NEU: Import für das Actor-DTO aus SystemStateDto
+import de.jklein.pharmalinkclient.dto.Medikament;  // NEU: Import für das Medikament-DTO aus SystemStateDto
+import de.jklein.pharmalinkclient.dto.Unit;       // NEU: Import für das Unit-DTO aus SystemStateDto
 import org.springframework.stereotype.Service;
 import com.vaadin.flow.spring.annotation.SpringComponent;
 import com.vaadin.flow.spring.annotation.VaadinSessionScope;
@@ -11,8 +16,8 @@ import com.vaadin.flow.spring.annotation.VaadinSessionScope;
 import java.io.Serializable;
 import java.beans.PropertyChangeListener;
 import java.beans.PropertyChangeSupport;
-import java.util.Collections; // Import für Collections.emptyList()
-import java.util.List; // Import für List
+import java.util.Collections;
+import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
@@ -45,20 +50,32 @@ public class StateService implements Serializable {
     private String navigateToMedikamentId;
     private final PropertyChangeSupport navigateToMedikamentSupport = new PropertyChangeSupport(this);
 
-    // NEUE ZUSTANDSVARIABLEN (bereits vorhanden)
+    // NEUE ZUSTANDSVARIABLEN (bereits vorhanden und aktualisiert)
     private String currentActorId;
-    private Map<String, Object> cacheStats;
+    private SystemStatsDto cacheStats; // GEÄNDERT: Typ von Map<String, Object> zu SystemStatsDto
+    private SystemStateDto systemState; // NEU: Variable für den vollständigen Systemzustand
 
-    // Listener für neue Zustandsvariablen (bereits vorhanden)
+    // Listener für neue Zustandsvariablen (bereits vorhanden und aktualisiert)
     private final transient CopyOnWriteArrayList<Consumer<String>> currentActorIdListeners = new CopyOnWriteArrayList<>();
-    private final transient CopyOnWriteArrayList<Consumer<Map<String, Object>>> cacheStatsListeners = new CopyOnWriteArrayList<>();
+    private final transient CopyOnWriteArrayList<Consumer<SystemStatsDto>> cacheStatsListeners = new CopyOnWriteArrayList<>(); // GEÄNDERT: Typ
+    private final transient CopyOnWriteArrayList<Consumer<SystemStateDto>> systemStateListeners = new CopyOnWriteArrayList<>(); // NEU: Listener für SystemStateDto
 
-    // NEU: Flag für den Ladezustand der Systemdaten pro Sitzung (bereits vorhanden)
+    // NEU: Flag für den Ladezustand der Systemdaten pro Sitzung (bestehend)
     private boolean systemDataLoadedForSession = false;
 
-    // NEU HINZUGEFÜGT: Liste für alle geladenen Akteure im StateService
+    // NEU HINZUGEFÜGT: Liste für alle geladenen Akteure im StateService (bestehend)
     private List<ActorResponseDto> allLoadedActors = Collections.emptyList();
     private final transient CopyOnWriteArrayList<Consumer<List<ActorResponseDto>>> allLoadedActorsListeners = new CopyOnWriteArrayList<>();
+
+    // --- NEU: Listen für die Detaildaten aus SystemStateDto ---
+    private List<Actor> allSystemActors = Collections.emptyList();
+    private final transient CopyOnWriteArrayList<Consumer<List<Actor>>> allSystemActorsListeners = new CopyOnWriteArrayList<>();
+
+    private List<Medikament> allSystemMedikamente = Collections.emptyList();
+    private final transient CopyOnWriteArrayList<Consumer<List<Medikament>>> allSystemMedikamenteListeners = new CopyOnWriteArrayList<>();
+
+    private List<Unit> mySystemUnits = Collections.emptyList();
+    private final transient CopyOnWriteArrayList<Consumer<List<Unit>>> mySystemUnitsListeners = new CopyOnWriteArrayList<>();
 
 
     public StateService() {
@@ -191,7 +208,7 @@ public class StateService implements Serializable {
         actorFilterCriteriaListeners.remove(listener);
     }
 
-    // --- Methoden für currentActorId und cacheStats (unverändert) ---
+    // --- Methoden für currentActorId (unverändert) ---
     public String getCurrentActorId() {
         return currentActorId;
     }
@@ -210,23 +227,41 @@ public class StateService implements Serializable {
         currentActorIdListeners.remove(listener);
     }
 
-
-    public Map<String, Object> getCacheStats() {
+    // --- Methoden für cacheStats (GEÄNDERT: Parameter- und Rückgabetyp) ---
+    public SystemStatsDto getCacheStats() {
         return cacheStats;
     }
 
-    public void setCacheStats(Map<String, Object> cacheStats) {
-        Map<String, Object> oldCacheStats = this.cacheStats;
+    public void setCacheStats(SystemStatsDto cacheStats) {
+        SystemStatsDto oldCacheStats = this.cacheStats;
         this.cacheStats = cacheStats;
         cacheStatsListeners.forEach(listener -> listener.accept(this.cacheStats));
     }
 
-    public void addCacheStatsListener(Consumer<Map<String, Object>> listener) {
+    public void addCacheStatsListener(Consumer<SystemStatsDto> listener) {
         cacheStatsListeners.add(listener);
     }
 
-    public void removeCacheStatsListener(Consumer<Map<String, Object>> listener) {
+    public void removeCacheStatsListener(Consumer<SystemStatsDto> listener) {
         cacheStatsListeners.remove(listener);
+    }
+
+    // --- NEU: Methoden für systemState ---
+    public SystemStateDto getSystemState() {
+        return systemState;
+    }
+
+    public void setSystemState(SystemStateDto systemState) {
+        this.systemState = systemState;
+        systemStateListeners.forEach(listener -> listener.accept(this.systemState));
+    }
+
+    public void addSystemStateListener(Consumer<SystemStateDto> listener) {
+        systemStateListeners.add(listener);
+    }
+
+    public void removeSystemStateListener(Consumer<SystemStateDto> listener) {
+        systemStateListeners.remove(listener);
     }
 
     // NEU: GETTER und SETTER für die systemDataLoadedForSession Flag (unverändert)
@@ -238,7 +273,7 @@ public class StateService implements Serializable {
         this.systemDataLoadedForSession = systemDataLoadedForSession;
     }
 
-    // NEU: Getter und Setter für alle geladenen Akteure
+    // NEU: Getter und Setter für alle geladenen Akteure (unverändert vom Original-Code)
     public List<ActorResponseDto> getAllLoadedActors() {
         return allLoadedActors;
     }
@@ -254,5 +289,59 @@ public class StateService implements Serializable {
 
     public void removeAllLoadedActorsListener(Consumer<List<ActorResponseDto>> listener) {
         allLoadedActorsListeners.remove(listener);
+    }
+
+    // --- NEU: Getter und Setter für allSystemActors (Details aus SystemStateDto) ---
+    public List<Actor> getAllSystemActors() {
+        return allSystemActors;
+    }
+
+    public void setAllSystemActors(List<Actor> allSystemActors) {
+        this.allSystemActors = allSystemActors != null ? allSystemActors : Collections.emptyList();
+        this.allSystemActorsListeners.forEach(listener -> listener.accept(this.allSystemActors));
+    }
+
+    public void addAllSystemActorsListener(Consumer<List<Actor>> listener) {
+        this.allSystemActorsListeners.add(listener);
+    }
+
+    public void removeAllSystemActorsListener(Consumer<List<Actor>> listener) {
+        this.allSystemActorsListeners.remove(listener);
+    }
+
+    // --- NEU: Getter und Setter für allSystemMedikamente (Details aus SystemStateDto) ---
+    public List<Medikament> getAllSystemMedikamente() {
+        return allSystemMedikamente;
+    }
+
+    public void setAllSystemMedikamente(List<Medikament> allSystemMedikamente) {
+        this.allSystemMedikamente = allSystemMedikamente != null ? allSystemMedikamente : Collections.emptyList();
+        this.allSystemMedikamenteListeners.forEach(listener -> listener.accept(this.allSystemMedikamente));
+    }
+
+    public void addAllSystemMedikamenteListener(Consumer<List<Medikament>> listener) {
+        this.allSystemMedikamenteListeners.add(listener);
+    }
+
+    public void removeAllSystemMedikamenteListener(Consumer<List<Medikament>> listener) {
+        this.allSystemMedikamenteListeners.remove(listener);
+    }
+
+    // --- NEU: Getter und Setter für mySystemUnits (Details aus SystemStateDto) ---
+    public List<Unit> getMySystemUnits() {
+        return mySystemUnits;
+    }
+
+    public void setMySystemUnits(List<Unit> mySystemUnits) {
+        this.mySystemUnits = mySystemUnits != null ? mySystemUnits : Collections.emptyList();
+        this.mySystemUnitsListeners.forEach(listener -> listener.accept(this.mySystemUnits));
+    }
+
+    public void addMySystemUnitsListener(Consumer<List<Unit>> listener) {
+        this.mySystemUnitsListeners.add(listener);
+    }
+
+    public void removeMySystemUnitsListener(Consumer<List<Unit>> listener) {
+        this.mySystemUnitsListeners.remove(listener);
     }
 }
