@@ -9,7 +9,6 @@ import de.jklein.pharmalinkclient.dto.SystemStatsDto;
 import de.jklein.pharmalinkclient.dto.Actor;       // NEU: Import für das Actor-DTO aus SystemStateDto
 import de.jklein.pharmalinkclient.dto.Medikament;  // NEU: Import für das Medikament-DTO aus SystemStateDto
 import de.jklein.pharmalinkclient.dto.Unit;       // NEU: Import für das Unit-DTO aus SystemStateDto
-import org.springframework.stereotype.Service;
 import com.vaadin.flow.spring.annotation.SpringComponent;
 import com.vaadin.flow.spring.annotation.VaadinSessionScope;
 
